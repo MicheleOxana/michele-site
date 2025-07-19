@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply bg-black text-white h-full w-full m-0 p-0;
+  font-family: 'sans-serif';
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Michele.live</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Unbounded', sans-serif;
+      }
+
+      body {
+        background: radial-gradient(circle at center, #2b0d39, #000);
+        color: white;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      header {
+        background: #1e022d;
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #aa00ff;
+      }
+
+      header h1 {
+        font-size: 1.6rem;
+        color: #e0b3ff;
+      }
+
+      nav a {
+        margin-left: 2rem;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      nav a:hover {
+        color: #da77ff;
+      }
+
+      main {
+        display: flex;
+        flex-direction: row;
+        padding: 1rem;
+        gap: 1rem;
+        height: calc(100vh - 80px);
+      }
+
+      .stream {
+        flex: 3;
+        background-color: #111;
+        border-radius: 1rem;
+        border: 2px solid #aa00ff;
+        overflow: hidden;
+        box-shadow: 0 0 20px #6b21a8aa;
+      }
+
+      .chat {
+        flex: 1.5;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 2px solid #aa00ff;
+        box-shadow: 0 0 20px #6b21a8aa;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      @media (max-width: 1024px) {
+        main {
+          flex-direction: column;
+        }
+
+        .chat {
+          height: 500px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🦄 Michele.<span style="color: #fff">live</span>
+      </h1>
+      <nav>
+        <a href="#">Live</a>
+        <a href="#">Ranking</a>
+        <a href="#">Sobre</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="stream">
+        <iframe
+          src="https://player.twitch.tv/?channel=micheleoxana&parent=localhost"
+          allowfullscreen>
+        </iframe>
+      </section>
+
+      <section class="chat">
+        <iframe
+          src="https://www.twitch.tv/embed/micheleoxana/chat?parent=localhost">
+        </iframe>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+# 🌱 Arquivos de ambiente e segredos
+.env
+.env.local
+.env.*.local
+
+# 🚫 Pastas geradas automaticamente
+node_modules/
+.next/
+.cache/
+out/
+dist/
+trace/
+server/
+
+# 🗂️ Arquivos de build e logs
+*.log
+*.tsbuildinfo
+
+# 🧼 Arquivos do sistema e lixo digital
+.DS_Store
+Thumbs.db
+
+# 🔁 Arquivos de start local
+start.sh
