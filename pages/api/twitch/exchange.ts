@@ -8,12 +8,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.body;
 
   try {
+    const redirectUri =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000/auth/voltei'
+        : 'https://micheleoxana.live/auth/voltei';
+
     const params = new URLSearchParams();
     params.append('client_id', process.env.TWITCH_CLIENT_ID!);
     params.append('client_secret', process.env.TWITCH_CLIENT_SECRET!);
     params.append('code', code);
     params.append('grant_type', 'authorization_code');
-    params.append('redirect_uri', process.env.TWITCH_REDIRECT_URI!);
+    params.append('redirect_uri', redirectUri);
 
     const response = await axios.post('https://id.twitch.tv/oauth2/token', params);
     return res.status(200).json(response.data);
