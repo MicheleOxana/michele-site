@@ -1,11 +1,14 @@
+// pages/api/viewer-messages.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 const FILE_PATH = path.join(process.cwd(), 'data/viewers.json');
-const ADMIN_TOKEN = process.env.HIGHLIGHT_SECRET || 'unixanaSurta2025';
+const ADMIN_TOKEN = process.env.HIGHLIGHT_SECRET;
 
 interface Comentario {
+  id: string;
   nome: string;
   mensagem: string;
 }
@@ -14,10 +17,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const file = fs.readFileSync(FILE_PATH, 'utf-8');
-      const data = JSON.parse(file);
+      const data = JSON.parse(file) as Comentario[];
       res.status(200).json(data);
     } catch (err) {
-      res.status(200).json([]); // se o arquivo não existir ainda
+      res.status(200).json([]); // Se não existir ainda
     }
   }
 
@@ -31,10 +34,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const file = fs.existsSync(FILE_PATH) ? fs.readFileSync(FILE_PATH, 'utf-8') : '[]';
       const data = JSON.parse(file) as Comentario[];
-      data.push({ nome, mensagem });
+      const novo: Comentario = { id: randomUUID(), nome, mensagem };
+      data.push(novo);
 
       fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
-      res.status(200).json({ sucesso: true });
+      res.status(200).json({ sucesso: true, comentario: novo });
     } catch (err) {
       res.status(500).json({ error: 'Erro ao salvar mensagem.' });
     }
@@ -47,17 +51,21 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(401).json({ error: 'Não autorizado' });
     }
 
-    const { index } = req.body;
+    const { id } = req.body;
+
+    if (!id) return res.status(400).json({ error: 'ID não fornecido.' });
+
     try {
       const file = fs.readFileSync(FILE_PATH, 'utf-8');
       const data = JSON.parse(file) as Comentario[];
-      if (index >= 0 && index < data.length) {
-        data.splice(index, 1);
-        fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
-        res.status(200).json({ sucesso: true });
-      } else {
-        res.status(400).json({ error: 'Índice inválido' });
+      const novaLista = data.filter((comentario) => comentario.id !== id);
+
+      if (data.length === novaLista.length) {
+        return res.status(404).json({ error: 'Comentário não encontrado' });
       }
+
+      fs.writeFileSync(FILE_PATH, JSON.stringify(novaLista, null, 2));
+      res.status(200).json({ sucesso: true });
     } catch (err) {
       res.status(500).json({ error: 'Erro ao deletar mensagem' });
     }
