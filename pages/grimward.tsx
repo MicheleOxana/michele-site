@@ -1,16 +1,16 @@
 import React from 'react';
 
-export default function Sobre() {
+export default function Grimward() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
 
       <main className="flex-1 flex flex-col justify-center items-center z-10 text-center px-4 py-20">
         <h1 className="text-4xl font-bold text-fuchsia-400 drop-shadow-[0_0_6px_fuchsia] mb-4 uppercase tracking-wide">
-          Sobre MicheleOxana™
+          Grimward
         </h1>
         <p className="text-purple-200 max-w-2xl text-lg">
-          Conheça a dragenda do caos! Um pouco da história, inspirações e surtos místicos dessa entidade queer medieval que domina a Twitch com glitter e gritaria.
+          O servidor medieval de Minecraft da MicheleOxana™. Entre para uma das Casas, lute por glória e espalhe o surto no mundo dos blocos.
         </p>
       </main>
 
