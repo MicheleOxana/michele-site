@@ -1,9 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
-const API_KEY = 'AIzaSyDVrPAfm1kcWmO-lZhA4zZN7yj3jrWeUJc';
-const CHANNEL_USERNAME = 'micheleoxana';
-const MAX_RESULTS = 3;
 
 interface Video {
   id: { videoId: string };
@@ -19,36 +14,9 @@ export default function YoutubeRecentVideos() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        // Etapa 1: Buscar o ID do canal pelo username
-        const channelRes = await axios.get(
-          `https://www.googleapis.com/youtube/v3/channels`,
-          {
-            params: {
-              forUsername: CHANNEL_USERNAME,
-              key: API_KEY,
-              part: 'id',
-            },
-          }
-        );
-        const channelId = channelRes.data.items[0]?.id;
-        if (!channelId) return;
-
-        // Etapa 2: Buscar os vídeos mais recentes do canal
-        const videosRes = await axios.get(
-          `https://www.googleapis.com/youtube/v3/search`,
-          {
-            params: {
-              key: API_KEY,
-              channelId,
-              part: 'snippet',
-              order: 'date',
-              maxResults: MAX_RESULTS,
-              type: 'video',
-            },
-          }
-        );
-
-        setVideos(videosRes.data.items);
+        const response = await fetch('/api/youtube');
+        const data = await response.json();
+        setVideos(data.items || []);
       } catch (error) {
         console.error('Erro ao buscar vídeos:', error);
       }
