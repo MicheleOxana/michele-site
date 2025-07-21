@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Login() {
   const clientId = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!;
-  const redirectUri = process.env.NEXT_PUBLIC_TWITCH_REDIRECT_URI!;
+  const redirectUri = 'https://micheleoxana.live/auth/voltei';
   const scope = 'user:read:email';
 
   const twitchLoginUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
