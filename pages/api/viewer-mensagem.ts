@@ -1,4 +1,3 @@
-// pages/api/viewer-messages.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
@@ -13,18 +12,27 @@ interface Comentario {
   mensagem: string;
 }
 
+function ensureFileExists() {
+  if (!fs.existsSync(FILE_PATH)) {
+    fs.mkdirSync(path.dirname(FILE_PATH), { recursive: true });
+    fs.writeFileSync(FILE_PATH, '[]');
+  }
+}
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  ensureFileExists();
+
   if (req.method === 'GET') {
     try {
       const file = fs.readFileSync(FILE_PATH, 'utf-8');
       const data = JSON.parse(file) as Comentario[];
-      res.status(200).json(data);
+      return res.status(200).json(data);
     } catch (err) {
-      res.status(200).json([]); // Se não existir ainda
+      return res.status(200).json([]);
     }
   }
 
-  else if (req.method === 'POST') {
+  if (req.method === 'POST') {
     const { nome, mensagem } = req.body;
 
     if (!nome || !mensagem) {
@@ -32,27 +40,30 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const file = fs.existsSync(FILE_PATH) ? fs.readFileSync(FILE_PATH, 'utf-8') : '[]';
+      const file = fs.readFileSync(FILE_PATH, 'utf-8');
       const data = JSON.parse(file) as Comentario[];
-      const novo: Comentario = { id: randomUUID(), nome, mensagem };
-      data.push(novo);
 
+      const novo: Comentario = {
+        id: randomUUID(),
+        nome,
+        mensagem,
+      };
+
+      data.push(novo);
       fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
-      res.status(200).json({ sucesso: true, comentario: novo });
+      return res.status(200).json({ sucesso: true, comentario: novo });
     } catch (err) {
-      res.status(500).json({ error: 'Erro ao salvar mensagem.' });
+      return res.status(500).json({ error: 'Erro ao salvar mensagem.' });
     }
   }
 
-  else if (req.method === 'DELETE') {
+  if (req.method === 'DELETE') {
     const token = req.headers.authorization?.split(' ')[1];
-
     if (token !== ADMIN_TOKEN) {
       return res.status(401).json({ error: 'Não autorizado' });
     }
 
     const { id } = req.body;
-
     if (!id) return res.status(400).json({ error: 'ID não fornecido.' });
 
     try {
@@ -65,13 +76,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       fs.writeFileSync(FILE_PATH, JSON.stringify(novaLista, null, 2));
-      res.status(200).json({ sucesso: true });
+      return res.status(200).json({ sucesso: true });
     } catch (err) {
-      res.status(500).json({ error: 'Erro ao deletar mensagem' });
+      return res.status(500).json({ error: 'Erro ao deletar mensagem' });
     }
   }
 
-  else {
-    res.status(405).json({ error: 'Método não permitido' });
-  }
+  return res.status(405).json({ error: 'Método não permitido' });
 }
