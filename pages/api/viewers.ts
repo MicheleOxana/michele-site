@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const clientId = process.env.TWITCH_CLIENT_ID!;
   const channel = process.env.TWITCH_CHANNEL_NAME!;
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://micheleoxana.live';
 
   const tokenRes = await fetch(`${baseUrl}/api/twitch-token`);
   const { token } = await tokenRes.json();
