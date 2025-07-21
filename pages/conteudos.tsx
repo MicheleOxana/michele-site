@@ -5,10 +5,7 @@ export default function Conteudos() {
   const [videos, setVideos] = useState<any[]>([]);
 
 useEffect(() => {
-  const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
-  const channelId = 'UCQ_ElHRwpREHimV0HyjDBWw';
-
-  fetch(`https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=3`)
+  fetch('/api/youtube')
     .then((res) => res.json())
     .then((data) => setVideos(data.items || []))
     .catch((err) => console.error('Erro ao buscar vídeos do YouTube:', err));
