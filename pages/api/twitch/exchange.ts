@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const response = await axios.post('https://id.twitch.tv/oauth2/token', params);
     return res.status(200).json(response.data);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro no exchange:', err.response?.data || err);
     return res.status(500).json({ error: 'Erro ao trocar código pelo token' });
   }
