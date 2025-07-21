@@ -38,8 +38,8 @@ export default function CantinhoDoViewer() {
   };
 
   const handleApagar = async (index: number) => {
-    const confirm = window.confirm('Tem certeza que deseja apagar essa mensagem?');
-    if (!confirm) return;
+    const confirmar = window.confirm('Tem certeza que deseja apagar essa mensagem?');
+    if (!confirmar) return;
 
     const res = await fetch('/api/viewers', {
       method: 'DELETE',
@@ -94,6 +94,11 @@ export default function CantinhoDoViewer() {
 
           <p>
             Esse cantinho é todinho seu, meu amor. 💖 Aqui é onde a magia da nossa comunidade vira memória e carinho eterno. Escreve, desabafa, declara, ou só deixa um "oi" com glitter — aqui tudo vira parte da história da live!
+          </p>
+
+          <p>
+            Que sua vida seja sempre abençoada com caminhos de glitter, bênçãos inesperadas, e surtos gostosos de alegria! 🌈✨
+            Deixa aqui sua marquinha no tempo — escreve uma mensagem pra mim ou pra galera, um desabafo, um carinho... vai ficar guardado com amor aqui nesse altarzinho do viewer.
           </p>
 
           <div className="mt-10">
