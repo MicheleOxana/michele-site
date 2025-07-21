@@ -30,7 +30,11 @@ export default function VolteiCallbackPage() {
         });
 
         const user = userRes.data.data[0];
+
+        // Salva no contexto: precisa passar os dois parâmetros
         login(access_token, user);
+
+        // Redireciona pra home
         router.replace('/');
       } catch (err) {
         console.error('Erro ao autenticar com Twitch:', err);
@@ -43,7 +47,7 @@ export default function VolteiCallbackPage() {
 
   return (
     <div className="h-screen flex items-center justify-center bg-black text-white">
-      <p className="text-xl animate-pulse">🔮 Invocando o surto via /voltei...</p>
+      <p className="text-xl animate-pulse">🌀 Invocando os surtos de volta...</p>
     </div>
   );
 }
