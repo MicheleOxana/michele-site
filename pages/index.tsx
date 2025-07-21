@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../src/context/AuthContext';
+import Link from 'next/link';
 
 export default function Home() {
   const router = useRouter();
@@ -161,41 +162,22 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
 
-      <div className="fixed top-1/2 left-2 transform -translate-y-1/2 z-50 w-[170px]">
-        {imagemQR === 'amazon' ? (
-          <a href="https://www.amazon.com.br/shop/micheleoxana" target="_blank" rel="noopener noreferrer">
-            <img src="/icons/amazoncard.svg" alt="Compre com meu link da Amazon" className="w-full drop-shadow-[0_0_8px_gold] hover:scale-105 transition-transform" />
-          </a>
-        ) : (
-          <img src="/icons/pixcard.svg" alt="Doe no Pix" className="w-full drop-shadow-[0_0_8px_fuchsia] hover:scale-105 transition-transform" />
-        )}
-      </div>
-
       <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
         <h1 className="text-2xl font-bold tracking-widest">💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span></h1>
         <nav className="space-x-3 text-sm font-bold tracking-wide uppercase text-fuchsia-300">
-          {[
-            "Início",
-            "Primeiros Passos",
-            "Sobre",
-            "Xaninhas Coins",
-            "Comandos",
-            "Loja",
-            "Conteúdos",
-            "Grimward",
-            "Cantinho do Viewer",
-            "Agradecimento"
-          ].map((label, index) => (
-            <a
-              key={index}
-              href="#"
-              className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow"
-            >
-              {label}
-            </a>
-          ))}
+          <Link href="/" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Início</a></Link>
+          <Link href="/primeiros-passos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Primeiros Passos</a></Link>
+          <Link href="/sobre" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Sobre</a></Link>
+          <Link href="/xaninhas-coins" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Xaninhas Coins</a></Link>
+          <Link href="/comandos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Comandos</a></Link>
+          <Link href="/loja" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Loja</a></Link>
+          <Link href="/conteudos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Conteúdos</a></Link>
+          <Link href="/grimward" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Grimward</a></Link>
+          <Link href="/cantinho-do-viewer" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Cantinho do Viewer</a></Link>
+          <Link href="/agradecimento" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Agradecimento</a></Link>
         </nav>
       </header>
+
 
       <div className="flex flex-1 z-10">
         <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
