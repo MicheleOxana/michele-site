@@ -1,4 +1,3 @@
-// pages/auth/voltei.tsx
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../src/context/AuthContext';
@@ -17,11 +16,9 @@ export default function VolteiCallbackPage() {
 
     const fetchUser = async () => {
       try {
-        // Troca o código pelo token
         const tokenRes = await axios.post('/api/twitch/exchange', { code });
         const { access_token } = tokenRes.data;
 
-        // Busca os dados do usuário
         const userRes = await axios.get('https://api.twitch.tv/helix/users', {
           headers: {
             Authorization: `Bearer ${access_token}`,
@@ -30,11 +27,7 @@ export default function VolteiCallbackPage() {
         });
 
         const user = userRes.data.data[0];
-
-        // Salva no contexto: precisa passar os dois parâmetros
         login(access_token, user);
-
-        // Redireciona pra home
         router.replace('/');
       } catch (err) {
         console.error('Erro ao autenticar com Twitch:', err);
@@ -46,8 +39,54 @@ export default function VolteiCallbackPage() {
   }, []);
 
   return (
-    <div className="h-screen flex items-center justify-center bg-black text-white">
-      <p className="text-xl animate-pulse">🌀 Invocando os surtos de volta...</p>
+    <div className="h-screen w-screen bg-black flex items-center justify-center relative overflow-hidden text-white">
+      {/* Glitter Animado de Fundo */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-500 to-yellow-300 animate-gradient-xy opacity-30" />
+
+      <div className="relative z-10 text-center p-8">
+        <h1 className="text-4xl font-bold animate-pulse drop-shadow-glow">
+          🧿 Invocando o surto via Twitch...
+        </h1>
+        <p className="mt-4 text-lg opacity-80 animate-fade-in">
+          Segure firme, os espíritos do entretenimento estão sendo evocados! 👻
+        </p>
+      </div>
+
+      {/* Estilos mágicos */}
+      <style jsx global>{`
+        @keyframes gradient-xy {
+          0%, 100% {
+            background-position: 0% 0%;
+          }
+          50% {
+            background-position: 100% 100%;
+          }
+        }
+
+        .animate-gradient-xy {
+          background-size: 200% 200%;
+          animation: gradient-xy 8s ease infinite;
+        }
+
+        .drop-shadow-glow {
+          text-shadow: 0 0 8px #fff, 0 0 12px #f0f, 0 0 20px #f0f;
+        }
+
+        @keyframes fade-in {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 1.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
