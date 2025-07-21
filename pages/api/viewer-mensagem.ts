@@ -12,26 +12,20 @@ interface Comentario {
   mensagem: string;
 }
 
-function ensureFileExists() {
-  if (!fs.existsSync(FILE_PATH)) {
-    fs.mkdirSync(path.dirname(FILE_PATH), { recursive: true });
-    fs.writeFileSync(FILE_PATH, '[]');
-  }
-}
-
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  ensureFileExists();
-
+  // GET - Qualquer um pode ver as mensagens
   if (req.method === 'GET') {
     try {
       const file = fs.readFileSync(FILE_PATH, 'utf-8');
       const data = JSON.parse(file) as Comentario[];
-      return res.status(200).json(data);
+      res.status(200).json(data);
     } catch (err) {
-      return res.status(200).json([]);
+      res.status(200).json([]); // Se ainda não houver mensagens
     }
+    return;
   }
 
+  // POST - Qualquer um pode enviar mensagem
   if (req.method === 'POST') {
     const { nome, mensagem } = req.body;
 
@@ -40,23 +34,25 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const file = fs.readFileSync(FILE_PATH, 'utf-8');
+      const file = fs.existsSync(FILE_PATH) ? fs.readFileSync(FILE_PATH, 'utf-8') : '[]';
       const data = JSON.parse(file) as Comentario[];
 
-      const novo: Comentario = {
+      const novoComentario: Comentario = {
         id: randomUUID(),
         nome,
         mensagem,
       };
 
-      data.push(novo);
+      data.push(novoComentario);
       fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
-      return res.status(200).json({ sucesso: true, comentario: novo });
+      res.status(200).json({ sucesso: true, comentario: novoComentario });
     } catch (err) {
-      return res.status(500).json({ error: 'Erro ao salvar mensagem.' });
+      res.status(500).json({ error: 'Erro ao salvar mensagem.' });
     }
+    return;
   }
 
+  // DELETE - Só Michele (com token) pode apagar
   if (req.method === 'DELETE') {
     const token = req.headers.authorization?.split(' ')[1];
     if (token !== ADMIN_TOKEN) {
@@ -71,16 +67,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       const data = JSON.parse(file) as Comentario[];
       const novaLista = data.filter((comentario) => comentario.id !== id);
 
-      if (data.length === novaLista.length) {
-        return res.status(404).json({ error: 'Comentário não encontrado' });
-      }
-
       fs.writeFileSync(FILE_PATH, JSON.stringify(novaLista, null, 2));
-      return res.status(200).json({ sucesso: true });
+      res.status(200).json({ sucesso: true });
     } catch (err) {
-      return res.status(500).json({ error: 'Erro ao deletar mensagem' });
+      res.status(500).json({ error: 'Erro ao deletar mensagem.' });
     }
+    return;
   }
 
-  return res.status(405).json({ error: 'Método não permitido' });
+  // Outros métodos
+  res.status(405).json({ error: 'Método não permitido' });
 }
