@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface Comentario {
+  id: string;
   nome: string;
   mensagem: string;
 }
@@ -11,13 +12,27 @@ export default function CantinhoDoViewer() {
   const [nome, setNome] = useState('');
   const [mensagem, setMensagem] = useState('');
 
-  const handleEnviar = () => {
+  const fetchComentarios = async () => {
+    const res = await fetch('/api/viewer-mensagem');
+    const data = await res.json();
+    setComentarios(data);
+  };
+
+  const handleEnviar = async () => {
     if (!nome || !mensagem) return;
-    const novoComentario = { nome, mensagem };
-    setComentarios((prev) => [...prev, novoComentario]);
+    await fetch('/api/viewer-mensagem', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, mensagem })
+    });
     setNome('');
     setMensagem('');
+    fetchComentarios();
   };
+
+  useEffect(() => {
+    fetchComentarios();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
@@ -91,8 +106,8 @@ export default function CantinhoDoViewer() {
               {comentarios.length === 0 ? (
                 <p className="text-sm text-purple-400">Nenhuma mensagem ainda... Seja o primeirx a deixar seu recado ✨</p>
               ) : (
-                comentarios.map((c, i) => (
-                  <div key={i} className="bg-purple-950/60 p-4 rounded border border-purple-700">
+                comentarios.map((c) => (
+                  <div key={c.id} className="bg-purple-950/60 p-4 rounded border border-purple-700">
                     <p className="text-fuchsia-400 font-bold">{c.nome}</p>
                     <p className="text-purple-200 mt-1">{c.mensagem}</p>
                   </div>
