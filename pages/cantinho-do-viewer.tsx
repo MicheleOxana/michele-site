@@ -47,25 +47,27 @@ export default function CantinhoDoViewer() {
   };
 
   // Apagar mensagem (somente Michele pode ver o botão)
-  const handleApagar = async (id?: string) => {
-    const confirmar = window.confirm('Tem certeza que deseja apagar essa mensagem?');
-    if (!confirmar || !id) return;
+ const handleApagar = async (id?: string) => {
+  const confirmar = window.confirm('Tem certeza que deseja apagar essa mensagem?');
+  if (!confirmar || !id) return;
 
-    const res = await fetch('/api/viewer-messages', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_HIGHLIGHT_SECRET}`,
-      },
-      body: JSON.stringify({ id }),
-    });
+  const res = await fetch('/api/viewer-messages', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-user-login': user?.login || '', 
+    },
+    body: JSON.stringify({ id }),
+  });
 
-    if (res.ok) {
-      setComentarios((prev) => prev.filter((c) => c.id !== id));
-    } else {
-      alert('Erro ao apagar a mensagem 😢');
-    }
-  };
+  if (res.ok) {
+    setComentarios((prev) => prev.filter((c) => c.id !== id));
+  } else {
+    const erro = await res.json().catch(() => ({}));
+    console.error('Erro ao apagar mensagem:', erro);
+    alert('Erro ao apagar a mensagem 😢');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
