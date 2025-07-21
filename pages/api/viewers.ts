@@ -1,35 +1,77 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
+import fs from 'fs';
+import path from 'path';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const clientId = process.env.TWITCH_CLIENT_ID!;
-  const channel = process.env.TWITCH_CHANNEL_NAME!;
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://micheleoxana.live';
+const FILE_PATH = path.join(process.cwd(), 'data/viewers.json');
+const ADMIN_TOKEN = process.env.HIGHLIGHT_SECRET!;
 
-  const tokenRes = await fetch(`${baseUrl}/api/twitch-token`);
-  const { token } = await tokenRes.json();
+interface Comentario {
+  nome: string;
+  mensagem: string;
+}
 
-  const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
-    headers: {
-      'Client-ID': clientId,
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  const userData = await userRes.json();
-  const userId = userData.data?.[0]?.id;
+// 🔧 Garante que o arquivo existe
+function ensureFile() {
+  if (!fs.existsSync(FILE_PATH)) {
+    fs.mkdirSync(path.dirname(FILE_PATH), { recursive: true });
+    fs.writeFileSync(FILE_PATH, '[]');
+  }
+}
 
-  const streamRes = await fetch(`https://api.twitch.tv/helix/streams?user_id=${userId}`, {
-    headers: {
-      'Client-ID': clientId,
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  ensureFile();
 
-  const streamData = await streamRes.json();
-
-  if (!streamData.data || streamData.data.length === 0) {
-    return res.status(200).json({ isLive: false, viewers: 0 });
+  if (req.method === 'GET') {
+    try {
+      const file = fs.readFileSync(FILE_PATH, 'utf-8');
+      const data = JSON.parse(file);
+      return res.status(200).json(data);
+    } catch {
+      return res.status(200).json([]);
+    }
   }
 
-  const viewers = streamData.data[0].viewer_count;
-  res.status(200).json({ isLive: true, viewers });
+  if (req.method === 'POST') {
+    const { nome, mensagem } = req.body;
+
+    if (!nome || !mensagem) {
+      return res.status(400).json({ error: 'Nome e mensagem são obrigatórios.' });
+    }
+
+    try {
+      const file = fs.readFileSync(FILE_PATH, 'utf-8');
+      const data = JSON.parse(file) as Comentario[];
+      data.push({ nome, mensagem });
+      fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
+      return res.status(200).json({ sucesso: true });
+    } catch {
+      return res.status(500).json({ error: 'Erro ao salvar mensagem.' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token !== ADMIN_TOKEN) {
+      return res.status(401).json({ error: 'Não autorizado' });
+    }
+
+    const { index } = req.body;
+
+    try {
+      const file = fs.readFileSync(FILE_PATH, 'utf-8');
+      const data = JSON.parse(file) as Comentario[];
+
+      if (index >= 0 && index < data.length) {
+        data.splice(index, 1);
+        fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, 2));
+        return res.status(200).json({ sucesso: true });
+      } else {
+        return res.status(400).json({ error: 'Índice inválido' });
+      }
+    } catch {
+      return res.status(500).json({ error: 'Erro ao deletar mensagem.' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Método não permitido' });
 }
