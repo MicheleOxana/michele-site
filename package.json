@@ -10,8 +10,9 @@
     "axios": "^1.10.0",
     "discloud": "^1.5.1",
     "dotenv": "^17.2.0",
+    "firebase": "^12.0.0",
     "lucide-react": "^0.525.0",
-    "next": "^13.5.11",
+    "next": "^15.4.2",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
