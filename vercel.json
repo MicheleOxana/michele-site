@@ -1,0 +1,8 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/auth/callback", "destination": "/auth/callback" },
+    { "source": "/login", "destination": "/login" },
+    { "source": "/", "destination": "/" }
+  ]
+}
