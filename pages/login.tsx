@@ -47,7 +47,7 @@ export default function Login() {
         muted
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/The_scene_in_202506190918.mp4" type="video/mp4" />
+        <source src="/videos/The_scene_in_202506190918.mp4" type="video/mp4" />
       </video>
 
       {/* Camada de contraste */}
