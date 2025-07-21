@@ -8,28 +8,34 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
+    if (isAuthenticated === false) {
+      router.replace('/login');
     }
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) return null;
+  if (isAuthenticated === undefined) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black text-white">
+        <p className="text-xl">✨ Carregando o surto... segura aí!</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null; // previne flash
 
   const [tempoSurto, setTempoSurto] = useState('fora do ar');
   const [viewers, setViewers] = useState('off');
   const [imagemQR, setImagemQR] = useState<'amazon' | 'pix'>('amazon');
   const [ultimos, setUltimos] = useState({
-  sub: 'carregando...',
-  bits: 'carregando...',
-  follower: 'carregando...'
-});
+    sub: 'carregando...',
+    bits: 'carregando...',
+    follower: 'carregando...'
+  });
 
-  // 🔁 Alternar entre Amazon e Pix a cada 30 segundos
   useEffect(() => {
     const intervalo = setInterval(() => {
       setImagemQR(prev => (prev === 'amazon' ? 'pix' : 'amazon'));
-    }, 30000); // 30 segundos
-
+    }, 30000);
     return () => clearInterval(intervalo);
   }, []);
 
@@ -55,7 +61,6 @@ export default function Home() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     const atualizarRelogio = async () => {
       try {
         const res = await axios.get('/api/uptime');
@@ -63,72 +68,52 @@ export default function Home() {
           setTempoSurto('fora do ar');
           return;
         }
-
         const startedAt = new Date(res.data.startedAt);
-
         interval = setInterval(() => {
           const agora = new Date();
           const diff = agora.getTime() - startedAt.getTime();
-
           const horas = Math.floor(diff / (1000 * 60 * 60));
           const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
           const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-
           setTempoSurto(`${horas}h ${minutos}min ${segundos}s`);
         }, 1000);
       } catch (e) {
         setTempoSurto('fora do ar');
       }
     };
-
     atualizarRelogio();
     return () => clearInterval(interval);
   }, []);
+
   useEffect(() => {
-  const buscarUltimos = async () => {
-    try {
-      const res = await axios.get('/api/ultimos'); // depois vamos ligar isso com a Twitch
-      setUltimos(res.data);
-    } catch (e) {
-      setUltimos({
-        sub: 'erro',
-        bits: 'erro',
-        follower: 'erro'
-      });
-    }
-  };
+    const buscarUltimos = async () => {
+      try {
+        const res = await axios.get('/api/ultimos');
+        setUltimos(res.data);
+      } catch (e) {
+        setUltimos({ sub: 'erro', bits: 'erro', follower: 'erro' });
+      }
+    };
+    buscarUltimos();
+    const interval = setInterval(buscarUltimos, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
-  buscarUltimos();
-  const interval = setInterval(buscarUltimos, 15000);
-  return () => clearInterval(interval);
-}, []);
+  useEffect(() => {
+    const atualizarViewers = async () => {
+      try {
+        const res = await axios.get('/api/viewers');
+        setViewers(res.data.viewers);
+      } catch (e) {
+        setViewers('off');
+      }
+    };
+    atualizarViewers();
+    const interval = setInterval(atualizarViewers, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
-
- // ✅ Efeito para buscar os viewers
-useEffect(() => {
-  const atualizarViewers = async () => {
-    try {
-      const res = await axios.get('/api/viewers');
-      setViewers(res.data.viewers);
-    } catch (e) {
-      setViewers('off');
-    }
-  };
-  atualizarViewers();
-  const interval = setInterval(atualizarViewers, 15000);
-  return () => clearInterval(interval);
-}, []);
-
-// ✅ Estado para os destaques
-const [highlights, setHighlights] = useState<{
-  sub: string;
-  bits: string;
-  follow: string;
-}>({
-  sub: '',
-  bits: '',
-  follow: ''
-});
+  const [highlights, setHighlights] = useState({ sub: '', bits: '', follow: '' });
 
   useEffect(() => {
     const fetchHighlights = async () => {
@@ -139,7 +124,6 @@ const [highlights, setHighlights] = useState<{
         console.error('Erro ao buscar dados da Twitch', err);
       }
     };
-
     fetchHighlights();
     const interval = setInterval(fetchHighlights, 30000);
     return () => clearInterval(interval);
@@ -149,33 +133,18 @@ const [highlights, setHighlights] = useState<{
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
 
-      {/* 🔻 BLOCO DO QR CÓDIGO ALTERNANTE */}
       <div className="fixed top-1/2 left-2 transform -translate-y-1/2 z-50 w-[170px]">
         {imagemQR === 'amazon' ? (
-          <a
-            href="https://www.amazon.com.br/shop/micheleoxana"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="/icons/amazoncard.svg"
-              alt="Compre com meu link da Amazon"
-              className="w-full drop-shadow-[0_0_8px_gold] hover:scale-105 transition-transform"
-            />
+          <a href="https://www.amazon.com.br/shop/micheleoxana" target="_blank" rel="noopener noreferrer">
+            <img src="/icons/amazoncard.svg" alt="Compre com meu link da Amazon" className="w-full drop-shadow-[0_0_8px_gold] hover:scale-105 transition-transform" />
           </a>
         ) : (
-          <img
-            src="/icons/pixcard.svg"
-            alt="Doe no Pix"
-            className="w-full drop-shadow-[0_0_8px_fuchsia] hover:scale-105 transition-transform"
-          />
+          <img src="/icons/pixcard.svg" alt="Doe no Pix" className="w-full drop-shadow-[0_0_8px_fuchsia] hover:scale-105 transition-transform" />
         )}
       </div>
 
       <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
-        <h1 className="text-2xl font-bold tracking-widest">
-          💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span>
-        </h1>
+        <h1 className="text-2xl font-bold tracking-widest">💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span></h1>
         <nav className="space-x-4 text-sm">
           <a href="#" className="hover:text-fuchsia-400 transition">Sobre</a>
           <a href="#" className="hover:text-fuchsia-400 transition">Comandos</a>
@@ -185,18 +154,17 @@ const [highlights, setHighlights] = useState<{
 
       <div className="flex flex-1 z-10">
         <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
-  <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
-  <ul className="space-y-2 text-sm">
-    <li>💜 Último Sub: <span className="text-pink-400">{highlights.sub}</span></li>
-    <li>💰 Top Bits: <span className="text-fuchsia-300">{highlights.bits}</span></li>
-    <li>🌈 Novo Seguidor: <span className="text-purple-300">{highlights.follow}</span></li>
-  </ul>
-</aside>
-
+          <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
+          <ul className="space-y-2 text-sm">
+            <li>💜 Último Sub: <span className="text-pink-400">{highlights.sub}</span></li>
+            <li>💰 Top Bits: <span className="text-fuchsia-300">{highlights.bits}</span></li>
+            <li>🌈 Novo Seguidor: <span className="text-purple-300">{highlights.follow}</span></li>
+          </ul>
+        </aside>
 
         <main className="flex-1 flex justify-center items-center overflow-hidden relative bg-purple-950 bg-opacity-30">
           <iframe
-            src="https://player.twitch.tv/?channel=micheleoxana&parent=localhost"
+            src="https://player.twitch.tv/?channel=micheleoxana&parent=micheleoxana.live"
             height="720"
             width="1280"
             allowFullScreen
@@ -227,10 +195,7 @@ const [highlights, setHighlights] = useState<{
           </div>
 
           <div className="fixed bottom-4 left-4 z-50 flex flex-col items-center w-32">
-            <div
-              id="fala-unixana"
-              className="text-xs bg-white text-black px-3 py-1 rounded-t-xl rounded-br-xl mb-1 shadow-lg max-w-[160px] text-center font-bold border border-purple-300"
-            >
+            <div id="fala-unixana" className="text-xs bg-white text-black px-3 py-1 rounded-t-xl rounded-br-xl mb-1 shadow-lg max-w-[160px] text-center font-bold border border-purple-300">
               Dá sub pra gatinha!
             </div>
             <img src="/icons/unixana.svg" alt="Unixana Mascote" className="w-full h-auto drop-shadow-[0_0_12px_gold]" />
@@ -242,7 +207,7 @@ const [highlights, setHighlights] = useState<{
             ✨ Chat da Galera ✨
           </div>
           <iframe
-            src="https://www.twitch.tv/embed/micheleoxana/chat?parent=localhost"
+            src="https://www.twitch.tv/embed/micheleoxana/chat?parent=micheleoxana.live"
             height="100%"
             width="100%"
             className="flex-1"
