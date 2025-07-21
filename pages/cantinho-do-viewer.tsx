@@ -14,19 +14,24 @@ export default function CantinhoDoViewer() {
   const [mensagem, setMensagem] = useState('');
   const { user, isAuthenticated } = useAuth();
 
+  // Carregar comentários
   useEffect(() => {
     fetch('/api/viewers')
       .then((res) => res.json())
       .then((data) => setComentarios(data));
   }, []);
 
+  // Enviar mensagem
   const handleEnviar = async () => {
     if (!nome || !mensagem) return;
 
     const novoComentario = { nome, mensagem };
+
     const res = await fetch('/api/viewers', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(novoComentario),
     });
 
@@ -34,9 +39,12 @@ export default function CantinhoDoViewer() {
       setComentarios((prev) => [...prev, novoComentario]);
       setNome('');
       setMensagem('');
+    } else {
+      alert('Erro ao enviar a mensagem 😢');
     }
   };
 
+  // Apagar mensagem (somente Michele pode ver o botão)
   const handleApagar = async (index: number) => {
     const confirmar = window.confirm('Tem certeza que deseja apagar essa mensagem?');
     if (!confirmar) return;
@@ -52,6 +60,8 @@ export default function CantinhoDoViewer() {
 
     if (res.ok) {
       setComentarios((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      alert('Erro ao apagar a mensagem 😢');
     }
   };
 
@@ -96,7 +106,7 @@ export default function CantinhoDoViewer() {
             Esse cantinho é todinho seu, meu amor. 💖 Aqui é onde a magia da nossa comunidade vira memória e carinho eterno. Escreve, desabafa, declara, ou só deixa um "oi" com glitter — aqui tudo vira parte da história da live!
           </p>
 
-          <p>
+           <p>
             Que sua vida seja sempre abençoada com caminhos de glitter, bênçãos inesperadas, e surtos gostosos de alegria! 🌈✨
             Deixa aqui sua marquinha no tempo — escreve uma mensagem pra mim ou pra galera, um desabafo, um carinho... vai ficar guardado com amor aqui nesse altarzinho do viewer.
           </p>
@@ -164,9 +174,6 @@ export default function CantinhoDoViewer() {
           background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
           background-size: 20px 20px;
           animation: glitter 40s linear infinite;
-        }
-        .shadow-glow {
-          text-shadow: 0 0 6px rgba(255, 0, 255, 0.6), 0 0 10px rgba(255, 0, 255, 0.4);
         }
       `}</style>
     </div>
