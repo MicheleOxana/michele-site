@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { useAuth } from '@/context/AuthContext';
 
 interface Comentario {
+  id?: string;
   nome: string;
   mensagem: string;
 }
@@ -16,7 +17,7 @@ export default function CantinhoDoViewer() {
 
   // Carregar comentários
   useEffect(() => {
-    fetch('/api/viewers')
+    fetch('/api/viewer-messages')
       .then((res) => res.json())
       .then((data) => setComentarios(data));
   }, []);
@@ -27,7 +28,7 @@ export default function CantinhoDoViewer() {
 
     const novoComentario = { nome, mensagem };
 
-    const res = await fetch('/api/viewers', {
+    const res = await fetch('/api/viewer-messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,7 +37,8 @@ export default function CantinhoDoViewer() {
     });
 
     if (res.ok) {
-      setComentarios((prev) => [...prev, novoComentario]);
+      const { comentario } = await res.json();
+      setComentarios((prev) => [...prev, comentario]);
       setNome('');
       setMensagem('');
     } else {
@@ -45,21 +47,21 @@ export default function CantinhoDoViewer() {
   };
 
   // Apagar mensagem (somente Michele pode ver o botão)
-  const handleApagar = async (index: number) => {
+  const handleApagar = async (id?: string) => {
     const confirmar = window.confirm('Tem certeza que deseja apagar essa mensagem?');
-    if (!confirmar) return;
+    if (!confirmar || !id) return;
 
-    const res = await fetch('/api/viewers', {
+    const res = await fetch('/api/viewer-messages', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_HIGHLIGHT_SECRET}`,
       },
-      body: JSON.stringify({ index }),
+      body: JSON.stringify({ id }),
     });
 
     if (res.ok) {
-      setComentarios((prev) => prev.filter((_, i) => i !== index));
+      setComentarios((prev) => prev.filter((c) => c.id !== id));
     } else {
       alert('Erro ao apagar a mensagem 😢');
     }
@@ -106,7 +108,7 @@ export default function CantinhoDoViewer() {
             Esse cantinho é todinho seu, meu amor. 💖 Aqui é onde a magia da nossa comunidade vira memória e carinho eterno. Escreve, desabafa, declara, ou só deixa um "oi" com glitter — aqui tudo vira parte da história da live!
           </p>
 
-           <p>
+          <p>
             Que sua vida seja sempre abençoada com caminhos de glitter, bênçãos inesperadas, e surtos gostosos de alegria! 🌈✨
             Deixa aqui sua marquinha no tempo — escreve uma mensagem pra mim ou pra galera, um desabafo, um carinho... vai ficar guardado com amor aqui nesse altarzinho do viewer.
           </p>
@@ -142,13 +144,13 @@ export default function CantinhoDoViewer() {
                 <p className="text-sm text-purple-400">Nenhuma mensagem ainda... Seja o primeirx a deixar seu recado ✨</p>
               ) : (
                 comentarios.map((c, i) => (
-                  <div key={i} className="bg-purple-950/60 p-4 rounded border border-purple-700">
+                  <div key={c.id || i} className="bg-purple-950/60 p-4 rounded border border-purple-700">
                     <p className="text-fuchsia-400 font-bold">{c.nome}</p>
                     <p className="text-purple-200 mt-1">{c.mensagem}</p>
-                    {isAuthenticated && user?.login === 'micheleoxana' && (
+                    {isAuthenticated && user?.login === 'micheleoxana' && c.id && (
                       <button
                         className="mt-2 text-xs text-pink-400 underline hover:text-red-500"
-                        onClick={() => handleApagar(i)}
+                        onClick={() => handleApagar(c.id)}
                       >
                         🗑️ Apagar
                       </button>
