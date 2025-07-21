@@ -159,6 +159,29 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+    <div className="fixed top-1/2 left-2 transform -translate-y-1/2 z-50 w-[170px]">
+      {imagemQR === 'amazon' ? (
+        <a
+          href="https://www.amazon.com.br/shop/micheleoxana"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="/icons/amazoncard.svg"
+            alt="Compre com meu link da Amazon"
+            className="w-full drop-shadow-[0_0_8px_gold] hover:scale-105 transition-transform"
+          />
+        </a>
+      ) : (
+        <img
+          src="/icons/pixcard.svg"
+          alt="Doe no Pix"
+          className="w-full drop-shadow-[0_0_8px_fuchsia] hover:scale-105 transition-transform"
+        />
+      )}
+    </div>
+
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
 
@@ -261,5 +284,6 @@ export default function Home() {
         }
       `}</style>
     </div>
+    </>
   );
 }
