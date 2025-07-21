@@ -113,29 +113,36 @@ export default function CantinhoDoViewer() {
             Deixa aqui sua marquinha no tempo — escreve uma mensagem pra mim ou pra galera, um desabafo, um carinho... vai ficar guardado com amor aqui nesse altarzinho do viewer.
           </p>
 
-          <div className="mt-10">
-            <h2 className="text-2xl text-fuchsia-300 font-semibold mb-4">📝 Deixe sua mensagem:</h2>
-            <input
-              type="text"
-              placeholder="Seu nome ou nick do surto"
-              className="w-full p-2 mb-2 rounded bg-purple-950 border border-fuchsia-700 text-white"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-            />
-            <textarea
-              placeholder="Sua mensagem linda, surtada ou emocionada 💜"
-              className="w-full p-2 rounded bg-purple-950 border border-fuchsia-700 text-white mb-4"
-              rows={4}
-              value={mensagem}
-              onChange={(e) => setMensagem(e.target.value)}
-            ></textarea>
-            <button
-              onClick={handleEnviar}
-              className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-4 rounded shadow-md"
-            >
-              Enviar Mensagem
-            </button>
-          </div>
+<div className="mt-10">
+  <h2 className="text-2xl text-fuchsia-300 font-semibold mb-4">📝 Deixe sua mensagem:</h2>
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      handleEnviar();
+    }}
+  >
+    <input
+      type="text"
+      placeholder="Seu nome ou nick do surto"
+      className="w-full p-2 mb-2 rounded bg-purple-950 border border-fuchsia-700 text-white"
+      value={nome}
+      onChange={(e) => setNome(e.target.value)}
+    />
+    <textarea
+      placeholder="Sua mensagem linda, surtada ou emocionada 💜"
+      className="w-full p-2 rounded bg-purple-950 border border-fuchsia-700 text-white mb-4"
+      rows={4}
+      value={mensagem}
+      onChange={(e) => setMensagem(e.target.value)}
+    ></textarea>
+    <button
+      type="submit"
+      className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-4 rounded shadow-md"
+    >
+      Enviar Mensagem
+    </button>
+  </form>
+</div>
 
           <div className="mt-10">
             <h2 className="text-2xl text-fuchsia-300 font-semibold mb-4">💌 Mensagens deixadas:</h2>
