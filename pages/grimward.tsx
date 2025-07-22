@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import grimwardBanner from '../public/images/grimward.jpg';
+import grimwardBanner from '../public/images/grimward.png';
 
 export default function Grimward() {
   return (
