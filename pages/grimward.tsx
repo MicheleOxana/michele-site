@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import grimwardBanner from '../public/images/grimward.png';
 
 export default function Grimward() {
   return (
@@ -25,7 +24,13 @@ export default function Grimward() {
       </header>
 
       <main className="flex-1 flex flex-col justify-center items-center z-10 text-left px-4 py-20 max-w-4xl mx-auto space-y-6">
-        <Image src={grimwardBanner} alt="Banner Grimward" className="rounded-xl shadow-lg shadow-fuchsia-700 border border-fuchsia-600" />
+        <Image
+          src="/images/grimward.png"
+          alt="Banner Grimward"
+          width={1200}
+          height={600}
+          className="rounded-xl shadow-lg shadow-fuchsia-700 border border-fuchsia-600"
+        />
 
         <article className="text-purple-200 text-lg space-y-5">
           <p><strong>Grimward</strong> não é só um servidor de Minecraft. É uma experiência. Um universo. Um reino encantado e brutal, nascido das trevas da fantasia medieval e pelo toque inconfundível da MicheleOxana™.</p>
