@@ -7,8 +7,8 @@ export default function Grimward() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
 
-      <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
-        <h1 className="text-2xl font-bold tracking-widest">🛡️ Grimward <span className="text-sm font-normal italic">by MicheleOxana™</span></h1>
+        <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
+        <h1 className="text-2xl font-bold tracking-widest">💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span></h1>
         <nav className="space-x-3 text-sm font-bold tracking-wide uppercase text-fuchsia-300">
           <Link href="/">Início</Link>
           <Link href="/primeiros-passos">Primeiros Passos</Link>
