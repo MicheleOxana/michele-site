@@ -25,7 +25,7 @@ export default function Loja() {
 
   useEffect(() => {
     if (user) {
-      axios.get(`/api/coins?username=${user.login}`).then(res => {
+      axios.get(`/api/coins?id=${user.login}`).then(res => {
         setCoins(res.data.coins);
       });
     }
@@ -36,15 +36,19 @@ export default function Loja() {
     if (coins < preco) return alert('Você não tem Xaninhas Coins suficientes.');
     try {
       setLoading(true);
-      await axios.post('/api/resgatar', {
+      const res = await axios.post('/api/resgatar', {
         username: user.login,
         item,
         preco,
       });
-      alert(`Você resgatou: ${item}`);
-      setCoins(prev => prev - preco);
-    } catch (err) {
-      alert('Erro ao resgatar. Tente novamente.');
+      if (res.data?.ok) {
+        alert(`Você resgatou: ${item}`);
+        setCoins(res.data.novoSaldo);
+      } else {
+        alert(res.data?.error || 'Erro ao resgatar.');
+      }
+    } catch (err: any) {
+      alert(err?.response?.data?.error || 'Erro ao resgatar.');
     } finally {
       setLoading(false);
     }
