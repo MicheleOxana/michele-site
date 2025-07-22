@@ -3,48 +3,51 @@ import Link from 'next/link';
 import { useAuth } from '../src/context/AuthContext';
 import axios from 'axios';
 
+interface Item {
+  nome: string;
+  preco: number;
+  key: string;
+}
+
 export default function Loja() {
   const { user } = useAuth();
   const [coins, setCoins] = useState(0);
-  const [resgates, setResgates] = useState<string[]>([]);
-  const [killerResgatado, setKillerResgatado] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    axios.get(`/api/coins/${user.id}`).then((res) => setCoins(res.data.coins));
-    axios.get(`/api/resgates`).then((res) => {
-      setResgates(res.data);
-      setKillerResgatado(res.data.some((r: any) => r.item === 'Escolha de Killer'));
-    });
-  }, [user]);
-
-  const itens = [
+  const itens: Item[] = [
     { nome: 'Escolha de Killer', preco: 10000, key: 'killer' },
-    { nome: 'React ao vivo', preco: 10000, key: 'react' },
-    { nome: 'Assistir um filme juntos', preco: 15000, key: 'filme' },
-    { nome: 'Escolher uma série', preco: 20000, key: 'serie' },
+    { nome: 'React ao Vivo', preco: 10000, key: 'react' },
+    { nome: 'Assistir um Filme', preco: 15000, key: 'filme' },
+    { nome: 'Escolher uma Série', preco: 20000, key: 'serie' },
     { nome: 'Viradão Cultural', preco: 40000, key: 'viradao' },
-    { nome: 'Ticket de Sorteio', preco: 8000, key: 'sorteio' },
+    { nome: 'Ticket de Sorteio', preco: 8000, key: 'ticket' },
   ];
 
-  const handleResgate = async (item: string, preco: number) => {
-    if (!user) return;
-    if (coins < preco) return alert('Você não tem Xaninhas Coins suficientes!');
-    if (item === 'Escolha de Killer' && killerResgatado) return alert('Esse item só pode ser resgatado uma vez por live!');
+  useEffect(() => {
+    if (user) {
+      axios.get(`/api/coins?username=${user.login}`).then(res => {
+        setCoins(res.data.coins);
+      });
+    }
+  }, [user]);
 
-    setLoading(true);
-    await axios.post('/api/resgatar', {
-      user: user.display_name,
-      userId: user.id,
-      item,
-      preco,
-    });
-    setCoins((prev) => prev - preco);
-    setResgates((prev) => [...prev, item]);
-    if (item === 'Escolha de Killer') setKillerResgatado(true);
-    alert(`Você resgatou: ${item}`);
-    setLoading(false);
+  const handleResgate = async (item: string, preco: number) => {
+    if (!user) return alert('Você precisa estar logado com a Twitch!');
+    if (coins < preco) return alert('Você não tem Xaninhas Coins suficientes.');
+    try {
+      setLoading(true);
+      await axios.post('/api/resgatar', {
+        username: user.login,
+        item,
+        preco,
+      });
+      alert(`Você resgatou: ${item}`);
+      setCoins(prev => prev - preco);
+    } catch (err) {
+      alert('Erro ao resgatar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
