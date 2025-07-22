@@ -9,8 +9,16 @@ export default function Comandos() {
       <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
         <h1 className="text-2xl font-bold tracking-widest">💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span></h1>
         <nav className="space-x-3 text-sm font-bold tracking-wide uppercase text-fuchsia-300">
-          <Link href="/"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Início</a></Link>
-          <Link href="/comandos"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Comandos</a></Link>
+          <Link href="/">Início</Link>
+          <Link href="/primeiros-passos">Primeiros Passos</Link>
+          <Link href="/sobre">Sobre</Link>
+          <Link href="/xaninhas-coins">Xaninhas Coins</Link>
+          <Link href="/comandos">Comandos</Link>
+          <Link href="/loja">Loja</Link>
+          <Link href="/conteudos">Conteúdos</Link>
+          <Link href="/grimward">Grimward</Link>
+          <Link href="/cantinho-do-viewer">Cantinho do Viewer</Link>
+          <Link href="/agradecimento">Agradecimento</Link>
         </nav>
       </header>
 
@@ -32,18 +40,20 @@ export default function Comandos() {
             <ul className="list-disc list-inside mt-4 space-y-1 text-sm">
               <li><strong>!xaninhacoins</strong> — Veja quantas moedas você tem. Rumo ao luxo digital!</li>
               <li><strong>!lixo</strong> — Contador de quantas vezes a Michele já humilhou alguém com classe.</li>
-              <li><strong>!discord / !tiktok / !instagram / !youtube</strong> — Links dos reinos do surto fora da Twitch.</li>
+              <li><strong>!discord / !tiktok / !instagram / !youtube / !streamloots</strong> — Links dos reinos do surto fora da Twitch.</li>
               <li><strong>!pix / !prime</strong> — Apoie a live com glamour e ganhe alertas ao vivo!</li>
-              <li><strong>!beijo / !glitter / !tilt / !gritar / !susto</strong> — Reações surtadas que fazem o chat ferver.</li>
-              <li><strong>!kitkiller / !main / !setup / !meta / !subathon / !jogo</strong> — Info gamer e caos da gameplay.</li>
+              <li><strong>!beijo / !glitter / !tilt / !gritar / !susto / !parou / !respeito</strong> — Reações surtadas que fazem o chat ferver.</li>
+              <li><strong>!mamacita / !mutante / !cadela / !piranha / !intensa / !barraqueira</strong> — Reações para seus mood.</li>
+              <li><strong>!kitkiller / !main / !setup / !meta / !subathon / !alerta / !drop / !globo / !furacão / !selo</strong> — Info gamer e caos da gameplay.</li>
               <li><strong>!minecraft</strong> — Entre no mundo místico do servidor Grimward!</li>
               <li><strong>!backseat</strong> — Avisa que o coach não foi chamado, mona!</li>
-              <li><strong>!kitbabado / !cafuné / !fofoca / !lanche / !ban / !secret</strong> — Aleatoriedades com gosto de surto e café gelado.</li>
-              <li><strong>!gay / !sapatao / !poc / !fada / !maricona</strong> — Comandos LGBTQIAPN+ pra enaltecer nossas existências brilhantes!</li>
-              <li><strong>!modoativo / !bugada / !quebrou / !derrota / !humilhada</strong> — Expressões de dor, glória e caos puro.</li>
-              <li><strong>!streamloots / !id / !steam</strong> — Pra quem quer jogar ou trolar com classe.</li>
-              <li><strong>!resumo / !revanche / !ranço / !doida / !mistica / !cancelada</strong> — A alma da live em forma de palavras.</li>
-              <li><strong>!onlyfans / !xvideos / !boquinha / !choque / !barraqueira</strong> — Picantezinhos, mas com elegância, claro.</li>
+              <li><strong>!baforada / !kawai / !chiclete / !vacilou / !hino / !purpurina / !torcida</strong> — Aleatoriedades escolhidas por Unixana.</li>
+              <li><strong>!kitbabado / !cafuné / !fofoca / !lanche / !ban / !secret / !coceira / !close / !desmaiei</strong> — Aleatoriedades com gosto de surto e café gelado.</li>
+              <li><strong>!gay / !sapatao / !poc / !fada / !maricona / !furry / !alien</strong> — Comandos LGBTQIAPN+ pra enaltecer nossas existências brilhantes!</li>
+              <li><strong>!modoativo / !bugada / !quebrou / !derrota / !humilhada / !derrame / !reage</strong> — Expressões de dor, glória e caos puro.</li>
+              <li><strong>!id / !steam</strong> — Pra quem quer jogar ou trolar com classe.</li>
+              <li><strong>!resumo / !revanche / !ranço / !doida / !mistica / !cancelada / !satan</strong> — A alma da live em forma de palavras.</li>
+              <li><strong>!onlyfans / !xvideos / !boquinha / !choque / </strong> — Picantezinhos, mas com elegância, claro.</li>
             </ul>
           </section>
 
