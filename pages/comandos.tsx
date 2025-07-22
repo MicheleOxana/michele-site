@@ -47,13 +47,13 @@ export default function Comandos() {
               <li><strong>!kitkiller / !main / !setup / !meta / !subathon / !alerta / !drop / !globo / !furacão / !selo</strong> — Info gamer e caos da gameplay.</li>
               <li><strong>!minecraft</strong> — Entre no mundo místico do servidor Grimward!</li>
               <li><strong>!backseat</strong> — Avisa que o coach não foi chamado, mona!</li>
-              <li><strong>!baforada / !kawai / !chiclete / !vacilou / !hino / !purpurina / !torcida</strong> — Aleatoriedades escolhidas por Unixana.</li>
+              <li><strong>!baforada / !kawai / !chiclete / !vacilou / !hino / !purpurina / !torcida / !choque</strong> — Aleatoriedades escolhidas por Unixana.</li>
               <li><strong>!kitbabado / !cafuné / !fofoca / !lanche / !ban / !secret / !coceira / !close / !desmaiei</strong> — Aleatoriedades com gosto de surto e café gelado.</li>
               <li><strong>!gay / !sapatao / !poc / !fada / !maricona / !furry / !alien</strong> — Comandos LGBTQIAPN+ pra enaltecer nossas existências brilhantes!</li>
               <li><strong>!modoativo / !bugada / !quebrou / !derrota / !humilhada / !derrame / !reage</strong> — Expressões de dor, glória e caos puro.</li>
               <li><strong>!id / !steam</strong> — Pra quem quer jogar ou trolar com classe.</li>
               <li><strong>!resumo / !revanche / !ranço / !doida / !mistica / !cancelada / !satan</strong> — A alma da live em forma de palavras.</li>
-              <li><strong>!onlyfans / !xvideos / !boquinha / !choque / </strong> — Picantezinhos, mas com elegância, claro.</li>
+              <li><strong>!onlyfans / !xvideos / !boquinha</strong> — Picantezinhos, mas com elegância, claro.</li>
             </ul>
           </section>
 
