@@ -1,4 +1,3 @@
-// pages/auth/bot.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -9,25 +8,17 @@ export default function BotAuth() {
 
   useEffect(() => {
     const code = router.query.code as string;
-
     if (!code) return;
 
-    const getTokens = async () => {
-      setStatus('Trocando código pelo token...');
+    const fetchToken = async () => {
+      setStatus('Enviando código para o backend...');
       try {
-        const response = await fetch('https://id.twitch.tv/oauth2/token', {
+        const res = await fetch('/api/twitch/auth-bot', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: process.env.NEXT_PUBLIC_TWITCH_BOT_CLIENT_ID!,
-            client_secret: process.env.NEXT_PUBLIC_TWITCH_BOT_CLIENT_SECRET!,
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: 'https://micheleoxana.live/auth/bot'
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
         });
-
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.access_token) {
           setTokens({
@@ -43,7 +34,7 @@ export default function BotAuth() {
       }
     };
 
-    getTokens();
+    fetchToken();
   }, [router.query.code]);
 
   return (
@@ -55,19 +46,25 @@ export default function BotAuth() {
         {tokens && (
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold">TWITCH_BOT_ACCESS_TOKEN:</label>
-              <textarea readOnly className="w-full bg-gray-800 p-2 rounded" rows={3}>
-                {tokens.access_token}
-              </textarea>
+              <label className="block font-semibold text-pink-400">TWITCH_BOT_ACCESS_TOKEN:</label>
+              <textarea
+                readOnly
+                className="w-full bg-gray-800 p-2 rounded text-sm break-all"
+                rows={3}
+                value={tokens.access_token}
+              />
             </div>
             <div>
-              <label className="block font-semibold">TWITCH_BOT_REFRESH_TOKEN:</label>
-              <textarea readOnly className="w-full bg-gray-800 p-2 rounded" rows={3}>
-                {tokens.refresh_token}
-              </textarea>
+              <label className="block font-semibold text-pink-400">TWITCH_BOT_REFRESH_TOKEN:</label>
+              <textarea
+                readOnly
+                className="w-full bg-gray-800 p-2 rounded text-sm break-all"
+                rows={3}
+                value={tokens.refresh_token}
+              />
             </div>
-            <p className="text-sm mt-4 text-yellow-400">
-              Copie os tokens acima e cole no seu <code>.env</code> local ✨
+            <p className="text-yellow-400 text-sm mt-4">
+              Copie os tokens acima e cole no seu <code>.env</code> local. 💅✨
             </p>
           </div>
         )}
