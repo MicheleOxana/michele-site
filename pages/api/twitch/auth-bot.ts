@@ -7,8 +7,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.body;
 
   const params = new URLSearchParams({
-    client_id: process.env.TWITCH_MOD_CLIENT_ID!,
-    client_secret: process.env.TWITCH_MOD_CLIENT_SECRET!,
+    client_id: process.env.TWITCH_BOT_CLIENT_ID!,
+    client_secret: process.env.TWITCH_BOT_CLIENT_SECRET!,
     code,
     grant_type: 'authorization_code',
     redirect_uri: 'https://micheleoxana.live/auth/bot'
