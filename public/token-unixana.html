@@ -1,44 +1,18 @@
 <!-- public/token-unixana.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Token Unixana</title>
-  <style>
-    body {
-      background: black;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      padding: 2rem;
-      text-align: center;
-    }
-
-    code {
-      background: #333;
-      padding: 1rem;
-      border-radius: 10px;
-      word-break: break-all;
-      color: #66ffcc;
-      margin-top: 1rem;
-    }
-  </style>
-</head>
-<body>
-  <h1>🦄 Token da Michele gerado!</h1>
-  <p>Copie esse token e cole no seu .env para usar como acesso da conta principal:</p>
-  <code id="token">Carregando token...</code>
-
-  <script>
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.substring(1));
-    const token = params.get('access_token');
-    document.getElementById('token').textContent = token || 'Token não encontrado';
-    console.log('TOKEN DA SUA CONTA PRINCIPAL:', token);
-  </script>
-</body>
+<html>
+  <head>
+    <title>Token Unixana</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body style="background:black;color:white;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;font-family:sans-serif;">
+    <h1>✨ Página de Token da Unixana ✨</h1>
+    <p>Olha na URL ou no console o token OAuth!</p>
+    <script>
+      const hash = window.location.hash;
+      const token = hash.includes('access_token') ? hash.split('access_token=')[1].split('&')[0] : null;
+      console.log('Access Token:', token);
+      document.write(`<code style="background:#222;padding:10px;border-radius:5px;">${token || 'Token não encontrado :('}</code>`);
+    </script>
+  </body>
 </html>
