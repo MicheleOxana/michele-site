@@ -25,7 +25,7 @@ export default function Grimward() {
 
       <main className="flex-1 flex flex-col justify-center items-center z-10 text-left px-4 py-20 max-w-4xl mx-auto space-y-6">
         <Image
-          src="/images/grimward.png"
+          src="/img/grimward.png"
           alt="Banner Grimward"
           width={1200}
           height={600}
