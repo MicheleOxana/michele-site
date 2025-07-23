@@ -1,27 +1,29 @@
-// pages/api/updateHighlight.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
-import path from 'path';
+import { db } from '../../src/services/firebaseAdmin';
 
-// 🔐 Carrega a variável de ambiente
-const HIGHLIGHT_SECRET = process.env.HIGHLIGHT_SECRET;
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const auth = req.headers.authorization;
-
-  // 🛡️ Validação com o token do .env
-  if (auth !== `Bearer ${HIGHLIGHT_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const data = req.body;
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || authHeader !== `Bearer ${process.env.HIGHLIGHT_SECRET}`) {
+    return res.status(401).json({ error: 'Não autorizado' });
+  }
 
   try {
-    const filePath = path.join(process.cwd(), 'public/data/highlight.json');
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error('Erro ao salvar highlight:', err);
-    res.status(500).json({ error: 'Erro ao salvar highlight' });
+    const data = req.body;
+
+    // Salva na coleção highlights, você pode ajustar a estrutura
+    await db.collection('highlights').add({
+      ...data,
+      createdAt: new Date().toISOString(),
+    });
+
+    return res.status(200).json({ message: 'Highlight salvo com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao salvar highlight:', error);
+    return res.status(500).json({ error: 'Erro interno' });
   }
 }

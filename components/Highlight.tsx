@@ -1,6 +1,7 @@
-// components/Highlight.tsx
 'use client';
 import { useEffect, useState } from 'react';
+import { db } from '../src/lib/firebase'; // caminho corrigido
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface HighlightData {
   ultimoFollow: string | null;
@@ -15,13 +16,19 @@ export default function Highlight() {
   const [highlight, setHighlight] = useState<HighlightData | null>(null);
 
   useEffect(() => {
-    fetch('/data/highlight.json')
-      .then(res => res.json())
-      .then(setHighlight)
-      .catch(console.error);
+    const docRef = doc(db, 'highlights', 'current');
+    const unsubscribe = onSnapshot(docRef, (doc) => {
+      if (doc.exists()) {
+        setHighlight(doc.data() as HighlightData);
+      } else {
+        setHighlight(null);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  if (!highlight) return null;
+  if (!highlight) return <p>Carregando highlights...</p>;
 
   return (
     <div className="p-4 rounded-2xl bg-purple-800/30 text-white shadow-lg backdrop-blur">
