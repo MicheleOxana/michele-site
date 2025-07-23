@@ -1,3 +1,4 @@
+// pages/api/highlight.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../src/services/firebaseAdmin';
 
@@ -15,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const data = req.body;
 
-    // Salva na coleção highlights, você pode ajustar a estrutura
-    await db.collection('highlights').add({
+    // Atualiza o documento 'current' na coleção 'highlights'
+    await db.collection('highlights').doc('current').set({
       ...data,
       createdAt: new Date().toISOString(),
     });
