@@ -1,4 +1,3 @@
-// pages/api/resgatar.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
@@ -13,12 +12,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { id, username, item, valor } = req.body;
 
-  if (!id || !username || !item || !valor) {
+  if (!id || !username || !item || valor === undefined || valor === null) {
     return res.status(400).json({ error: 'Dados incompletos.' });
   }
 
   try {
-    // Busca saldo atual do Firestore
     const userRef = doc(db, 'xaninhasCoins', id);
     const userSnap = await getDoc(userRef);
 
@@ -27,12 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       saldoAtual = userSnap.data().coins || 0;
     }
 
-    // Verifica se tem saldo suficiente
     if (saldoAtual < valor) {
       return res.status(400).json({ error: 'Você não tem Xaninhas Coins suficientes!' });
     }
 
-    // Se o item for "Escolha de Killer", garantir que ainda não foi resgatado hoje
     if (item === 'Escolha de Killer') {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -49,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Subtrai e atualiza o saldo
     const novoSaldo = saldoAtual - valor;
     if (userSnap.exists()) {
       await updateDoc(userRef, { coins: novoSaldo });
@@ -57,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await setDoc(userRef, { coins: novoSaldo });
     }
 
-    // Registra o resgate
     await addDoc(collection(db, 'resgates'), {
       userId: id,
       username,

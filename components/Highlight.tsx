@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { db } from '../src/lib/firebase'; // caminho correto confirmado
+import { db } from '../src/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 interface HighlightData {
@@ -20,7 +20,18 @@ export default function Highlight() {
     const docRef = doc(db, 'highlights', 'current');
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        setHighlight(docSnap.data() as HighlightData);
+        const data = docSnap.data();
+        if (
+          typeof data.ultimoFollow === 'string' &&
+          typeof data.ultimoSub === 'string' &&
+          data.ultimosBits &&
+          typeof data.ultimosBits.nome === 'string' &&
+          typeof data.ultimosBits.quantidade === 'number'
+        ) {
+          setHighlight(data as HighlightData);
+        } else {
+          setHighlight(null);
+        }
       } else {
         setHighlight(null);
       }
