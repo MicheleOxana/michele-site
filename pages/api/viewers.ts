@@ -1,32 +1,48 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getMicheleAccessToken } from '@/utils/getUserTokenFromFirebase';
+import getMicheleAccessToken from '@/utils/getUserTokenFromFirebase';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
-    const { access_token } = await getMicheleAccessToken();
+    const access_token = await getMicheleAccessToken();
 
-    // Consulta a API de streams para obter informações da live (incluindo viewer count)
-    const twitchRes = await fetch(
-      'https://api.twitch.tv/helix/streams?user_login=micheleoxana',
-      {
-        headers: {
-          'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
-          'Authorization': `Bearer ${access_token}`,
-        },
+    const twitchResponse = await fetch(`https://api.twitch.tv/helix/streams?user_login=micheleoxana`, {
+      headers: {
+        'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
+        'Authorization': `Bearer ${access_token}`
       }
-    );
+    });
 
-    const data = await twitchRes.json();
+    const streamData = await twitchResponse.json();
 
-    if (data.data && data.data.length > 0) {
-      const viewerCount = data.data[0].viewer_count;
-      return res.status(200).json({ viewers: viewerCount });
-    } else {
-      // Se a live não estiver no ar, retornamos 'off' para indicar offline
-      return res.status(200).json({ viewers: 'off' });
+    const isLive = streamData?.data?.length > 0;
+
+    if (!isLive) {
+      return res.status(200).json({ isLive: false, viewers: [] });
     }
+
+    const userId = streamData.data[0].user_id;
+
+    const chattersResponse = await fetch(`https://api.twitch.tv/helix/chat/chatters?broadcaster_id=${userId}&moderator_id=${userId}`, {
+      headers: {
+        'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
+        'Authorization': `Bearer ${access_token}`
+      }
+    });
+
+    const chattersData = await chattersResponse.json();
+
+    if (!chattersData || !chattersData.data) {
+      throw new Error('❌ Erro ao obter os viewers.');
+    }
+
+    const viewers = chattersData.data.map((chatter: any) => chatter.user_login);
+
+    return res.status(200).json({ isLive: true, viewers });
   } catch (error) {
-    console.error('❌ Erro ao buscar viewers:', error);
-    return res.status(500).json({ viewers: 'off' });
+    console.error('Erro ao buscar viewers:', error);
+    return res.status(500).json({ error: 'Erro ao buscar viewers' });
   }
 }
