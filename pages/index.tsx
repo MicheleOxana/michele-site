@@ -252,7 +252,7 @@ export default function Home() {
           </div>
         </main>
 
-        <aside className="w-96 bg-purple-950 border-l border-purple-700 relative flex flex-col">
+      <aside className="w-[25%] min-w-[300px] max-w-[400px] bg-purple-950 border-l border-purple-700 relative flex flex-col">
           <div className="text-center text-fuchsia-300 py-1 border-b border-purple-700 font-bold text-sm bg-purple-900">
             ✨ Chat da Galera ✨
           </div>
