@@ -13,47 +13,60 @@ interface HighlightData {
 }
 
 export default function Highlight() {
-  const [highlight, setHighlight] = useState<HighlightData | null>(null);
+  const [highlight, setHighlight] = useState<HighlightData>({
+    ultimoFollow: null,
+    ultimoSub: null,
+    ultimosBits: {
+      nome: null,
+      quantidade: 0,
+    },
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const docRef = doc(db, 'highlights', 'current');
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (
-          typeof data.ultimoFollow === 'string' &&
-          typeof data.ultimoSub === 'string' &&
-          data.ultimosBits &&
-          typeof data.ultimosBits.nome === 'string' &&
-          typeof data.ultimosBits.quantidade === 'number'
-        ) {
-          setHighlight(data as HighlightData);
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setHighlight({
+            ultimoFollow: typeof data.ultimoFollow === 'string' ? data.ultimoFollow : null,
+            ultimoSub: typeof data.ultimoSub === 'string' ? data.ultimoSub : null,
+            ultimosBits: {
+              nome: typeof data?.ultimosBits?.nome === 'string' ? data.ultimosBits.nome : null,
+              quantidade: typeof data?.ultimosBits?.quantidade === 'number' ? data.ultimosBits.quantidade : 0,
+            },
+          });
         } else {
-          setHighlight(null);
+          setHighlight({
+            ultimoFollow: null,
+            ultimoSub: null,
+            ultimosBits: {
+              nome: null,
+              quantidade: 0,
+            },
+          });
         }
-      } else {
-        setHighlight(null);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Erro ao ouvir highlights:', error);
+        setLoading(false);
       }
-      setLoading(false);
-    }, (error) => {
-      console.error('Erro ao ouvir highlights:', error);
-      setLoading(false);
-    });
+    );
 
     return () => unsubscribe();
   }, []);
 
   if (loading) return <p className="text-white">Carregando highlights...</p>;
 
-  if (!highlight) return <p className="text-white">Nenhum highlight disponível no momento.</p>;
-
   return (
     <div className="p-4 rounded-2xl bg-purple-800/30 text-white shadow-lg backdrop-blur">
       <h2 className="text-xl font-bold mb-2">✨ Highlights da Live ✨</h2>
       <p>📌 Último follow: {highlight.ultimoFollow || 'ninguém ainda 😭'}</p>
       <p>🎁 Último sub: {highlight.ultimoSub || 'ninguém ainda 😭'}</p>
-      <p>💎 Últimos bits: {highlight.ultimosBits?.nome || 'ninguém'} — {highlight.ultimosBits?.quantidade || 0} bits</p>
+      <p>💎 Últimos bits: {highlight.ultimosBits.nome || 'ninguém'} — {highlight.ultimosBits.quantidade || 0} bits</p>
     </div>
   );
 }
