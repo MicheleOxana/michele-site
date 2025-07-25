@@ -31,11 +31,23 @@ export default function Highlight() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setHighlight({
-            ultimoFollow: typeof data.ultimoFollow === 'string' ? data.ultimoFollow : null,
-            ultimoSub: typeof data.ultimoSub === 'string' ? data.ultimoSub : null,
+            ultimoFollow:
+              typeof data.ultimoFollow === 'string' && data.ultimoFollow.trim() !== ''
+                ? data.ultimoFollow
+                : null,
+            ultimoSub:
+              typeof data.ultimoSub === 'string' && data.ultimoSub.trim() !== ''
+                ? data.ultimoSub
+                : null,
             ultimosBits: {
-              nome: typeof data?.ultimosBits?.nome === 'string' ? data.ultimosBits.nome : null,
-              quantidade: typeof data?.ultimosBits?.quantidade === 'number' ? data.ultimosBits.quantidade : 0,
+              nome:
+                typeof data?.ultimosBits?.nome === 'string' && data.ultimosBits.nome.trim() !== ''
+                  ? data.ultimosBits.nome
+                  : null,
+              quantidade:
+                typeof data?.ultimosBits?.quantidade === 'number'
+                  ? data.ultimosBits.quantidade
+                  : 0,
             },
           });
         } else {
@@ -66,7 +78,12 @@ export default function Highlight() {
       <h2 className="text-xl font-bold mb-2">✨ Highlights da Live ✨</h2>
       <p>📌 Último follow: {highlight.ultimoFollow || 'ninguém ainda 😭'}</p>
       <p>🎁 Último sub: {highlight.ultimoSub || 'ninguém ainda 😭'}</p>
-      <p>💎 Últimos bits: {highlight.ultimosBits.nome || 'ninguém'} — {highlight.ultimosBits.quantidade || 0} bits</p>
+      <p>
+        💎 Últimos bits:{' '}
+        {highlight.ultimosBits.nome
+          ? `${highlight.ultimosBits.nome} — ${highlight.ultimosBits.quantidade} bits`
+          : 'ninguém ainda 😭'}
+      </p>
     </div>
   );
 }

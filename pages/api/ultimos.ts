@@ -1,4 +1,3 @@
-// pages/api/ultimos.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../src/services/firebaseAdmin';
 
@@ -12,12 +11,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         follower: 'nenhum'
       });
     }
-    const highlightData = highlightDoc.data();
+
+    const data = highlightDoc.data();
+
+    const bits =
+      typeof data?.ultimosBits?.nome === 'string'
+        ? `${data.ultimosBits.nome} — ${data.ultimosBits.quantidade || 0} bits`
+        : 'nenhum';
 
     return res.status(200).json({
-      sub: highlightData?.ultimoSub || 'nenhum',
-      bits: highlightData?.ultimosBits?.quantidade || 'nenhum',
-      follower: highlightData?.ultimoFollow || 'nenhum'
+      sub: data?.ultimoSub || 'nenhum',
+      bits,
+      follower: data?.ultimoFollow || 'nenhum'
     });
   } catch (err) {
     console.error('Erro ao buscar dados do Firebase:', err);

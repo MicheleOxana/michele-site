@@ -27,12 +27,6 @@ export default function Home() {
   const [tempoSurto, setTempoSurto] = useState('fora do ar');
   const [viewers, setViewers] = useState<number | 'off'>('off');
   const [imagemQR, setImagemQR] = useState<'amazon' | 'pix'>('amazon');
-  const [ultimos, setUltimos] = useState({
-    sub: 'carregando...',
-    bits: 'carregando...',
-    follower: 'carregando...'
-  });
-
   const [highlights, setHighlights] = useState({ sub: '', bits: '', follow: '' });
 
   useEffect(() => {
@@ -191,10 +185,10 @@ export default function Home() {
         <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
           <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
           <ul className="space-y-2 text-sm">
-            <li>💜 Último Sub: <span className="text-pink-400">{highlights.sub}</span></li>
-            <li>💰 Top Bits: <span className="text-fuchsia-300">{highlights.bits}</span></li>
-            <li>🌈 Novo Seguidor: <span className="text-purple-300">{highlights.follow}</span></li>
-          </ul>
+          <li>💜 Último Sub: <span className="text-pink-400">{highlights.sub || 'ninguém'}</span></li>
+          <li>💰 Top Bits: <span className="text-fuchsia-300">{highlights.bits || 'ninguém'}</span></li>
+          <li>🌈 Novo Seguidor: <span className="text-purple-300">{highlights.follow || 'ninguém'}</span></li>
+        </ul>
         </aside>
 
         <main className="flex-1 flex justify-center items-center overflow-hidden relative bg-purple-950 bg-opacity-30">
