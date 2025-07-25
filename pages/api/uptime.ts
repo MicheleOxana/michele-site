@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getMicheleAccessToken } from '../../../src/utils/getUserTokenFromFirebase';
+import getMicheleAccessToken from '../../../src/utils/getUserTokenFromFirebase';
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

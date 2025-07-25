@@ -1,28 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getMicheleAccessToken } from '../../../src/utils/getUserTokenFromFirebase';
+import { getMicheleAccessToken } from '@/utils/getUserTokenFromFirebase';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { access_token } = await getMicheleAccessToken();
 
-    const twitchRes = await fetch('https://api.twitch.tv/helix/chat/chatters?broadcaster_id=517861418&moderator_id=517861418', {
-      headers: {
-        'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
-        'Authorization': `Bearer ${access_token}`,
-      },
-    });
+    // Consulta a API de streams para obter informações da live (incluindo viewer count)
+    const twitchRes = await fetch(
+      'https://api.twitch.tv/helix/streams?user_login=micheleoxana',
+      {
+        headers: {
+          'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
+          'Authorization': `Bearer ${access_token}`,
+        },
+      }
+    );
 
     const data = await twitchRes.json();
 
-    if (!data || !data.data || !Array.isArray(data.data)) {
-      throw new Error('❌ Dados inesperados da API da Twitch');
+    if (data.data && data.data.length > 0) {
+      const viewerCount = data.data[0].viewer_count;
+      return res.status(200).json({ viewers: viewerCount });
+    } else {
+      // Se a live não estiver no ar, retornamos 'off' para indicar offline
+      return res.status(200).json({ viewers: 'off' });
     }
-
-    const viewers = data.data.map((user: any) => user.user_login);
-
-    return res.status(200).json({ viewers });
   } catch (error) {
     console.error('❌ Erro ao buscar viewers:', error);
-    return res.status(500).json({ viewers: [] });
+    return res.status(500).json({ viewers: 'off' });
   }
 }

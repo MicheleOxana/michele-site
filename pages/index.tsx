@@ -91,7 +91,6 @@ export default function Home() {
   }, [tempoSurto, viewers]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     const atualizarRelogio = async () => {
       try {
         const res = await axios.get('/api/uptime');
@@ -100,7 +99,7 @@ export default function Home() {
           return;
         }
         const startedAt = new Date(res.data.startedAt);
-        interval = setInterval(() => {
+        const interval = setInterval(() => {
           const agora = new Date();
           const diff = agora.getTime() - startedAt.getTime();
           const horas = Math.floor(diff / (1000 * 60 * 60));
@@ -108,26 +107,12 @@ export default function Home() {
           const segundos = Math.floor((diff % (1000 * 60)) / 1000);
           setTempoSurto(`${horas}h ${minutos}min ${segundos}s`);
         }, 1000);
+        return () => clearInterval(interval);
       } catch (e) {
         setTempoSurto('fora do ar');
       }
     };
     atualizarRelogio();
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const buscarUltimos = async () => {
-      try {
-        const res = await axios.get('/api/ultimos');
-        setUltimos(res.data);
-      } catch (e) {
-        setUltimos({ sub: 'erro', bits: 'erro', follower: 'erro' });
-      }
-    };
-    buscarUltimos();
-    const interval = setInterval(buscarUltimos, 15000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
