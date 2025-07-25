@@ -225,7 +225,7 @@ export default function Home() {
             ⏰ em surto há: {tempoSurto}
           </div>
 
-          <div className="absolute bottom-0 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
+          <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
             🧍 viewers: {viewers}
           </div>
 
