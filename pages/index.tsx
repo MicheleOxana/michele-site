@@ -142,7 +142,7 @@ export default function Home() {
     const interval = setInterval(fetchHighlights, 30000);
     return () => clearInterval(interval);
   }, []);
-  
+
 const handleFollow = async () => {
   try {
     const res = await fetch('/api/follow', {
@@ -228,11 +228,11 @@ const handleFollow = async () => {
             ⏰ em surto há: {tempoSurto}
           </div>
 
-          <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
-            🧍 viewers: {viewers}
-          </div>
 
     <div className="absolute bottom-2 left-4 z-40 flex gap-4">
+      <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
+            🧍 viewers: {viewers}
+          </div>
   <button
     onClick={handleFollow}
     className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-green-400 hover:bg-green-600 cursor-pointer transition-all"
