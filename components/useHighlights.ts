@@ -1,36 +1,37 @@
-import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase'; // Firebase client
-import { doc, onSnapshot } from 'firebase/firestore';
-
-interface Highlights {
-  sub: string;
-  bits: string;
-  follow: string;
-}
+import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export function useHighlights() {
-  const [highlights, setHighlights] = useState<Highlights>({
-    sub: 'ninguém',
-    bits: 'ninguém',
-    follow: 'ninguém',
+  const [data, setData] = useState({
+    sub: 'carregando...',
+    bits: 'carregando...',
+    follow: 'carregando...',
   });
 
   useEffect(() => {
-    const docRef = doc(db, 'highlights', 'current');
-    const unsub = onSnapshot(docRef, (snap) => {
-      const data = snap.data();
-      setHighlights({
-        sub: typeof data?.ultimoSub === 'string' && data.ultimoSub !== '' ? data.ultimoSub : 'ninguém',
-        bits:
-          typeof data?.ultimosBits?.nome === 'string' && data.ultimosBits.nome !== ''
-            ? `${data.ultimosBits.nome} — ${data.ultimosBits.quantidade} bits`
-            : 'ninguém',
-        follow: typeof data?.ultimoFollow === 'string' && data.ultimoFollow !== '' ? data.ultimoFollow : 'ninguém',
-      });
-    });
+    // Só executa no client
+    if (typeof window === 'undefined') return;
 
-    return () => unsub();
+    const fetchData = async () => {
+      const docRef = doc(db, 'highlights', 'current');
+      const snap = await getDoc(docRef);
+
+      if (snap.exists()) {
+        const d = snap.data();
+        const sub = d.ultimoSub || 'ninguém';
+        const follow = d.ultimoFollow || 'ninguém';
+        let bits = 'ninguém';
+        if (d.ultimosBits?.nome) {
+          bits = `${d.ultimosBits.nome} — ${d.ultimosBits.quantidade || 0} bits`;
+        }
+
+        setData({ sub, bits, follow });
+      }
+    };
+
+    fetchData();
   }, []);
 
-  return highlights;
+  return data;
 }
