@@ -185,9 +185,24 @@ export default function Home() {
         <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
           <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
           <ul className="space-y-2 text-sm">
-          <li>💜 Último Sub: <span className="text-pink-400">{highlights.sub || 'ninguém'}</span></li>
-          <li>💰 Top Bits: <span className="text-fuchsia-300">{highlights.bits || 'ninguém'}</span></li>
-          <li>🌈 Novo Seguidor: <span className="text-purple-300">{highlights.follow || 'ninguém'}</span></li>
+          <li>
+  💜 Último Sub:{" "}
+  <span className="text-pink-400">
+    {highlights.sub?.trim() ? highlights.sub : "ninguém"}
+  </span>
+</li>
+<li>
+  💰 Top Bits:{" "}
+  <span className="text-fuchsia-300">
+    {highlights.bits?.trim() ? highlights.bits : "ninguém"}
+  </span>
+</li>
+<li>
+  🌈 Novo Seguidor:{" "}
+  <span className="text-purple-300">
+    {highlights.follow?.trim() ? highlights.follow : "ninguém"}
+  </span>
+</li>
         </ul>
         </aside>
 
