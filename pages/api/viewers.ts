@@ -16,11 +16,10 @@ export default async function handler(
     });
 
     const streamData = await twitchResponse.json();
-
     const isLive = streamData?.data?.length > 0;
 
     if (!isLive) {
-      return res.status(200).json({ isLive: false, viewers: [] });
+      return res.status(200).json({ isLive: false, viewers: 'off' });
     }
 
     const userId = streamData.data[0].user_id;
@@ -38,9 +37,9 @@ export default async function handler(
       throw new Error('❌ Erro ao obter os viewers.');
     }
 
-    const viewers = chattersData.data.map((chatter: any) => chatter.user_login);
+    const viewersCount = chattersData.data.length;
 
-    return res.status(200).json({ isLive: true, viewers });
+    return res.status(200).json({ isLive: true, viewers: viewersCount });
   } catch (error) {
     console.error('Erro ao buscar viewers:', error);
     return res.status(500).json({ error: 'Erro ao buscar viewers' });

@@ -25,7 +25,7 @@ export default function Home() {
   if (!isAuthenticated) return null;
 
   const [tempoSurto, setTempoSurto] = useState('fora do ar');
-  const [viewers, setViewers] = useState('off');
+  const [viewers, setViewers] = useState<number | 'off'>('off');
   const [imagemQR, setImagemQR] = useState<'amazon' | 'pix'>('amazon');
   const [ultimos, setUltimos] = useState({
     sub: 'carregando...',
@@ -230,9 +230,11 @@ const handleFollow = async () => {
 
 
     <div className="absolute bottom-2 left-4 z-40 flex gap-4">
-      <div className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
-            🧍 viewers: {viewers}
-          </div>
+      <div className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl border border-white/20">
+  {viewers === 'off'
+    ? '🚫 Live fora do ar'
+    : `👀 ${viewers} criatura${viewers === 1 ? '' : 's'} surtando`}
+</div>
   <button
     onClick={handleFollow}
     className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-green-400 hover:bg-green-600 cursor-pointer transition-all"
