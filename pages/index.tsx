@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../src/context/AuthContext';
 import Link from 'next/link';
-
+import { useHighlights } from 'components/useHighlights';
+const highlights = useHighlights();
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
@@ -181,30 +182,30 @@ export default function Home() {
       </header>
 
 
-      <div className="flex flex-1 z-10">
-        <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
-          <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
-          <ul className="space-y-2 text-sm">
-          <li>
-  💜 Último Sub:{" "}
-  <span className="text-pink-400">
-    {highlights.sub?.trim() ? highlights.sub : "ninguém"}
-  </span>
-</li>
-<li>
-  💰 Top Bits:{" "}
-  <span className="text-fuchsia-300">
-    {highlights.bits?.trim() ? highlights.bits : "ninguém"}
-  </span>
-</li>
-<li>
-  🌈 Novo Seguidor:{" "}
-  <span className="text-purple-300">
-    {highlights.follow?.trim() ? highlights.follow : "ninguém"}
-  </span>
-</li>
-        </ul>
-        </aside>
+<div className="flex flex-1 z-10">
+  <aside className="w-48 bg-purple-950 p-4 border-r border-purple-700 shadow-inner shadow-purple-800">
+    <h2 className="text-lg font-semibold mb-4">✨ Apoio ao surto</h2>
+    <ul className="space-y-2 text-sm">
+      <li>
+        💜 Último Sub:{" "}
+        <span className="text-pink-400">
+          {highlights?.sub || "ninguém"}
+        </span>
+      </li>
+      <li>
+        💰 Top Bits:{" "}
+        <span className="text-fuchsia-300">
+          {highlights?.bits || "ninguém"}
+        </span>
+      </li>
+      <li>
+        🌈 Novo Seguidor:{" "}
+        <span className="text-purple-300">
+          {highlights?.follow || "ninguém"}
+        </span>
+      </li>
+    </ul>
+  </aside>
 
         <main className="flex-1 flex justify-center items-center overflow-hidden relative bg-purple-950 bg-opacity-30">
           <iframe
