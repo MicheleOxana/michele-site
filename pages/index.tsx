@@ -215,8 +215,8 @@ export default function Home() {
         <main className="flex-1 flex justify-center items-center overflow-hidden relative bg-purple-950 bg-opacity-30">
           <iframe
             src="https://player.twitch.tv/?channel=micheleoxana&parent=micheleoxana.live"
-            height="720"
-            width="1280"
+            height="85%"
+            width="95%"
             allowFullScreen
             className="rounded-lg shadow-2xl border-4 border-fuchsia-600 scale-105"
           ></iframe>
