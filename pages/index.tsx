@@ -142,7 +142,25 @@ export default function Home() {
     const interval = setInterval(fetchHighlights, 30000);
     return () => clearInterval(interval);
   }, []);
+  
+const handleFollow = async () => {
+  try {
+    const res = await fetch('/api/follow', {
+      method: 'POST',
+    });
 
+    if (res.ok) {
+      alert('💜 Você seguiu a live! Obrigada, sua linda!');
+    } else {
+      const data = await res.json();
+      console.error('Erro ao seguir:', data);
+      alert(`Erro ao seguir: ${data.error || 'desconhecido'}`);
+    }
+  } catch (error) {
+    console.error('Erro no fetch do follow:', error);
+    alert('Erro ao tentar seguir. Tenta de novo, mana!');
+  }
+};
   return (
     <>
     <div className="fixed top-1/2 left-2 transform -translate-y-1/2 z-50 w-[170px]">
@@ -214,27 +232,23 @@ export default function Home() {
             🧍 viewers: {viewers}
           </div>
 
-                   <div className="absolute bottom-2 left-48 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500 hover:bg-fuchsia-700 cursor-pointer transition-all"
-     onClick={async () => {
-       try {
-         const res = await axios.post('/api/follow');
-         if (res.status === 204) alert('💜 Você agora segue a MicheleOxana! Obrigado pelo carinho!');
-         else alert('Algo deu errado! Já segue ou não foi possível seguir agora.');
-       } catch {
-         alert('⚠️ Oops! Erro ao tentar seguir. Verifique se está logado com a Twitch.');
-       }
-     }}>
-  💜 seguir a live
-</div>
+    <div className="absolute bottom-2 left-4 z-40 flex gap-4">
+  <button
+    onClick={handleFollow}
+    className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-green-400 hover:bg-green-600 cursor-pointer transition-all"
+  >
+    💜 seguir a live
+  </button>
 
-<a
-  href="https://www.twitch.tv/products/micheleoxana"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="absolute bottom-2 left-[16rem] z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-yellow-400 hover:bg-yellow-600 cursor-pointer transition-all"
->
-  💰 dar sub
-</a>
+  <a
+    href="https://www.twitch.tv/products/micheleoxana"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-yellow-400 hover:bg-yellow-600 cursor-pointer transition-all"
+  >
+    💰 dar sub
+  </a>
+</div>
 
           <div className="absolute bottom-0 right-4 z-30 flex gap-4">
             <a href="https://discord.gg/ds7j2x3RQQ" target="_blank" rel="noopener noreferrer">
