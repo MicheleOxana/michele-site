@@ -210,6 +210,19 @@ export default function Home() {
             ⏰ em surto há: {tempoSurto}
           </div>
 
+          <div className="absolute bottom-2 left-48 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500 hover:bg-fuchsia-700 cursor-pointer transition-all"
+     onClick={async () => {
+       try {
+         const res = await axios.post('/api/follow');
+         if (res.status === 204) alert('💜 Você agora segue a MicheleOxana! Obrigado pelo carinho!');
+         else alert('Algo deu errado! Já segue ou não foi possível seguir agora.');
+       } catch {
+         alert('⚠️ Oops! Erro ao tentar seguir. Verifique se está logado com a Twitch.');
+       }
+     }}>
+  💜 seguir a live
+</div>
+
           <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
             🧍 viewers: {viewers}
           </div>
