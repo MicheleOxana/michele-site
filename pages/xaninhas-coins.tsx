@@ -12,20 +12,11 @@ export default function XaninhasCoins() {
   useEffect(() => {
     const fetchRanking = async () => {
       try {
-        const res = await fetch('/data/pontuacoeslive.json');
-        const data = await res.json();
-
-        const ordenado: RankItem[] = Object.entries(data)
-          .map(([nick, pontos]) => ({
-            nick,
-            pontos: Number(pontos),
-          }))
-          .sort((a, b) => b.pontos - a.pontos)
-          .slice(0, 20);
-
-        setRanking(ordenado);
+        const res = await fetch('/api/coins-ranking');
+        const data: RankItem[] = await res.json();
+        setRanking(data);
       } catch (err) {
-        console.error('Erro ao carregar ranking:', err);
+        console.error('Erro ao carregar ranking do Firebase:', err);
       }
     };
 
