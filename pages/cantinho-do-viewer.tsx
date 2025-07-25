@@ -101,7 +101,7 @@ export default function CantinhoDoViewer() {
 
         <div className="text-purple-200 space-y-6 text-lg">
           <blockquote className="italic border-l-4 border-fuchsia-500 pl-4 text-pink-200">
-            “Vai passar, tu sabes que vai passar. Talvez não amanhã, mas dentro de uma semana, um mês ou dois, quem sabe?...”
+            “Vai passar, tu sabes que vai passar. Talvez não amanhã, mas dentro de uma semana, um mês ou dois, quem sabe? O verão está aí, haverá sol quase todos os dias, e sempre resta essa coisa chamada impulso vital. Pois esse impulso às vezes cruel, porque não permite que nenhuma dor insista por muito tempo, te empurrará quem sabe para o sol, para o mar, para uma nova estrada qualquer e, de repente, no meio de uma frase ou de um movimento te surpreenderás pensando algo assim como estou contente outra vez.”
             <br />
             <span className="block mt-2 font-bold">— Caio Fernando Abreu</span>
           </blockquote>
@@ -173,7 +173,7 @@ export default function CantinhoDoViewer() {
       </main>
 
       <footer className="z-10 bg-purple-950 text-purple-400 text-xs text-center py-2 border-t border-purple-700">
-        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — powered by <span className="italic text-pink-400">Unixana 🦄</span>
+        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — Site surtado powered by <span className="italic text-pink-400">Unixana 🦄</span>
       </footer>
 
       <style jsx>{`

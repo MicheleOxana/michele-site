@@ -54,7 +54,7 @@ export default function XaninhasCoins() {
 
       <main className="flex-1 flex flex-col justify-center items-center z-10 text-left px-4 py-20 max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-fuchsia-400 drop-shadow-[0_0_6px_fuchsia] mb-6 uppercase tracking-wide text-center">
-          🪙 Xaninhas Coins: o surto tem valor!
+          💰 Xaninhas Coins: o surto tem valor!
         </h1>
 
         <div className="text-purple-200 space-y-6 text-lg">
@@ -102,7 +102,7 @@ export default function XaninhasCoins() {
       </main>
 
       <footer className="z-10 bg-purple-950 text-purple-400 text-xs text-center py-2 border-t border-purple-700">
-        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — powered by <span className="italic text-pink-400">Unixana 🦄</span>
+        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — Site surtado powered by <span className="italic text-pink-400">Unixana 🦄</span>
       </footer>
 
       <style jsx>{`
