@@ -231,7 +231,7 @@ export default function Home() {
 
           <div className="absolute bottom-0 right-4 z-30 flex gap-4">
             <a href="https://discord.gg/ds7j2x3RQQ" target="_blank" rel="noopener noreferrer">
-              <img src="/icons/discord.svg" alt="Discord" className="w-16 h-16 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
+              <img src="/icons/discord.svg" alt="Discord" className="w-14 h-14 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
             </a>
             <a href="https://instagram.com/jeffersonloyola" target="_blank" rel="noopener noreferrer">
               <img src="/icons/instagram.svg" alt="Instagram" className="w-16 h-16 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
