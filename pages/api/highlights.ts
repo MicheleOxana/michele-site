@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/lib/firebase'; // IGUAL O RANKING
+import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Método GET — sem proteção
   if (req.method === 'GET') {
     try {
       const ref = doc(db, 'highlights', 'current');
@@ -35,7 +36,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  // Método POST — protegido por senha
   if (req.method === 'POST') {
+    const token = req.headers.authorization?.replace('Bearer ', '').trim();
+
+    if (!token || token !== process.env.HIGHLIGHT_SECRET) {
+      return res.status(403).json({ error: 'Acesso não autorizado' });
+    }
+
     try {
       const { ultimoSub, ultimoFollow, ultimosBits } = req.body;
 
@@ -56,5 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  // Método não permitido
   return res.status(405).json({ error: 'Método não permitido' });
 }
