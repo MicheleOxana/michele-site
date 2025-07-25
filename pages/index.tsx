@@ -143,25 +143,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-const handleFollow = async () => {
-  try {
-    const res = await fetch('/api/follow', {
-      method: 'POST',
-    });
-
-    if (res.ok) {
-      alert('💜 Você seguiu a live! Obrigada, sua linda!');
-    } else {
-      const data = await res.json();
-      console.error('Erro ao seguir:', data);
-      alert(`Erro ao seguir: ${data.error || 'desconhecido'}`);
-    }
-  } catch (error) {
-    console.error('Erro no fetch do follow:', error);
-    alert('Erro ao tentar seguir. Tenta de novo, mana!');
-  }
-};
-  return (
+ return (
     <>
     <div className="fixed top-1/2 left-2 transform -translate-y-1/2 z-50 w-[170px]">
       {imagemQR === 'amazon' ? (
@@ -229,18 +211,21 @@ const handleFollow = async () => {
           </div>
 
 
-    <div className="absolute bottom-2 left-4 z-40 flex gap-4">
-      <div className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl border border-white/20">
-  {viewers === 'off'
-    ? '🚫 Live fora do ar'
-    : `👀 ${viewers} criatura${viewers === 1 ? '' : 's'} surtando`}
-</div>
-  <button
-    onClick={handleFollow}
+<div className="absolute bottom-2 left-4 z-40 flex gap-4">
+  <div className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl border border-white/20">
+    {viewers === 'off'
+      ? '🚫 Live fora do ar'
+      : `👀 ${viewers} criatura${viewers === 1 ? '' : 's'} surtando`}
+  </div>
+
+  <a
+    href="https://www.twitch.tv/micheleoxana"
+    target="_blank"
+    rel="noopener noreferrer"
     className="bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-green-400 hover:bg-green-600 cursor-pointer transition-all"
   >
-    💜 seguir a live
-  </button>
+    💜 seguir
+  </a>
 
   <a
     href="https://www.twitch.tv/products/micheleoxana"
