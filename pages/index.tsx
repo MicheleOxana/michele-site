@@ -200,7 +200,7 @@ export default function Home() {
         <main className="flex-1 flex justify-center items-center overflow-hidden relative bg-purple-950 bg-opacity-30">
           <iframe
             src="https://player.twitch.tv/?channel=micheleoxana&parent=micheleoxana.live"
-            height="85%"
+            height="82%"
             width="95%"
             allowFullScreen
             className="rounded-lg shadow-2xl border-4 border-fuchsia-600 scale-105"
@@ -210,7 +210,11 @@ export default function Home() {
             ⏰ em surto há: {tempoSurto}
           </div>
 
-          <div className="absolute bottom-2 left-48 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500 hover:bg-fuchsia-700 cursor-pointer transition-all"
+          <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
+            🧍 viewers: {viewers}
+          </div>
+
+                   <div className="absolute bottom-2 left-48 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500 hover:bg-fuchsia-700 cursor-pointer transition-all"
      onClick={async () => {
        try {
          const res = await axios.post('/api/follow');
@@ -223,13 +227,18 @@ export default function Home() {
   💜 seguir a live
 </div>
 
-          <div className="absolute bottom-2 left-4 z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-fuchsia-500">
-            🧍 viewers: {viewers}
-          </div>
+<a
+  href="https://www.twitch.tv/products/micheleoxana"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="absolute bottom-2 left-[16rem] z-40 bg-purple-950/60 text-white px-3 py-1 text-sm rounded-xl shadow-lg border border-yellow-400 hover:bg-yellow-600 cursor-pointer transition-all"
+>
+  💰 dar sub
+</a>
 
           <div className="absolute bottom-0 right-4 z-30 flex gap-4">
             <a href="https://discord.gg/ds7j2x3RQQ" target="_blank" rel="noopener noreferrer">
-              <img src="/icons/discord.svg" alt="Discord" className="w-14 h-14 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
+              <img src="/icons/discord.svg" alt="Discord" className="w-16 h-16 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
             </a>
             <a href="https://instagram.com/jeffersonloyola" target="_blank" rel="noopener noreferrer">
               <img src="/icons/instagram.svg" alt="Instagram" className="w-16 h-16 hover:scale-110 transition-transform drop-shadow-[0_0_6px_fuchsia]" />
