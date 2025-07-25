@@ -3,11 +3,12 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../src/context/AuthContext';
 import Link from 'next/link';
-import { useHighlights } from 'components/useHighlights';
-const highlights = useHighlights();
+
+
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  
 
   useEffect(() => {
     if (isAuthenticated === false) {
@@ -63,7 +64,7 @@ export default function Home() {
       if (v > 10) return [
         "💅 O surto tá médio, mas refinado!",
         "🎭 O palco tá armado e tem gente assistindo!",
-        "✨ Vem mais gente pro furdunço!"
+        "✨ Vem mais gente para o furdunço!"
       ];
 
       return [
