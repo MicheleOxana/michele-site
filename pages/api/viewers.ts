@@ -5,7 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { access_token } = await getMicheleAccessToken();
 
-    const twitchRes = await fetch('https://api.twitch.tv/helix/streams?user_login=micheleoxana', {
+    const twitchRes = await fetch('https://api.twitch.tv/helix/chat/chatters?broadcaster_id=517861418&moderator_id=517861418', {
       headers: {
         'Client-ID': process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID!,
         'Authorization': `Bearer ${access_token}`,
@@ -14,14 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = await twitchRes.json();
 
-    if (data.data && data.data.length > 0) {
-      const startedAt = data.data[0].started_at;
-      return res.status(200).json({ isLive: true, startedAt });
+    if (!data || !data.data || !Array.isArray(data.data)) {
+      throw new Error('❌ Dados inesperados da API da Twitch');
     }
 
-    return res.status(200).json({ isLive: false });
+    const viewers = data.data.map((user: any) => user.user_login);
+
+    return res.status(200).json({ viewers });
   } catch (error) {
-    console.error('❌ Erro ao buscar uptime:', error);
-    return res.status(500).json({ isLive: false });
+    console.error('❌ Erro ao buscar viewers:', error);
+    return res.status(500).json({ viewers: [] });
   }
 }
