@@ -1,14 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../src/services/firebaseAdmin';
+import { db } from '@/lib/firebase'; // IGUAL O RANKING
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const docSnap = await db.collection('highlights').doc('current').get();
-      if (!docSnap.exists) {
+      const ref = doc(db, 'highlights', 'current');
+      const snapshot = await getDoc(ref);
+
+      if (!snapshot.exists()) {
         return res.status(200).json({ sub: '', bits: '', follow: '' });
       }
-      const data = docSnap.data();
+
+      const data = snapshot.data();
+
       const ultimoSub = typeof data?.ultimoSub === 'string' ? data.ultimoSub : '';
       const ultimoFollow = typeof data?.ultimoFollow === 'string' ? data.ultimoFollow : '';
       let bitsHighlight = '';
@@ -18,7 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           bitsHighlight += ` — ${data.ultimosBits.quantidade} bits`;
         }
       }
-      return res.status(200).json({ sub: ultimoSub, bits: bitsHighlight, follow: ultimoFollow });
+
+      return res.status(200).json({
+        sub: ultimoSub,
+        bits: bitsHighlight,
+        follow: ultimoFollow,
+      });
     } catch (error) {
       console.error('Erro ao buscar highlights:', error);
       return res.status(500).json({ sub: '', bits: '', follow: '' });
@@ -29,7 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { ultimoSub, ultimoFollow, ultimosBits } = req.body;
 
-      await db.collection('highlights').doc('current').set(
+      await setDoc(
+        doc(db, 'highlights', 'current'),
         {
           ...(ultimoSub && { ultimoSub }),
           ...(ultimoFollow && { ultimoFollow }),
