@@ -39,6 +39,7 @@ export default function Comandos() {
             </p>
             <ul className="list-disc list-inside mt-4 space-y-1 text-sm">
               <li><strong>!xaninhacoins</strong> — Veja quantas moedas você tem. Rumo ao luxo digital!</li>
+              <li><strong>!clip</strong> — Faz um clipe da live do ultimo minuto!</li>
               <li><strong>!lixo</strong> — Contador de quantas vezes a Michele já humilhou alguém com classe.</li>
               <li><strong>!discord / !tiktok / !instagram / !youtube / !streamloots</strong> — Links dos reinos do surto fora da Twitch.</li>
               <li><strong>!pix / !prime</strong> — Apoie a live com glamour e ganhe alertas ao vivo!</li>
