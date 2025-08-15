@@ -41,10 +41,10 @@ export default function Comandos() {
               <li><strong>!xaninhacoins</strong> — Veja quantas moedas você tem. Rumo ao luxo digital!</li>
               <li><strong>!clip</strong> — Faz um clipe da live do ultimo minuto!</li>
               <li><strong>!lixo</strong> — Contador de quantas vezes a Michele já humilhou alguém com classe.</li>
-              <li><strong>!discord / !tiktok / !instagram / !youtube / !streamloots</strong> — Links dos reinos do surto fora da Twitch.</li>
+              <li><strong>!discord / !tiktok / !instagram / !youtube / !streamloots / !telegram</strong> — Links dos reinos do surto fora da Twitch.</li>
               <li><strong>!pix / !prime</strong> — Apoie a live com glamour e ganhe alertas ao vivo!</li>
               <li><strong>!beijo / !glitter / !tilt / !gritar / !susto / !parou / !respeito</strong> — Reações surtadas que fazem o chat ferver.</li>
-              <li><strong>!mamacita / !mutante / !cadela / !piranha / !intensa / !barraqueira</strong> — Reações para seus mood.</li>
+              <li><strong>!mamacita / !mutante / !cadela / !piranha / !intensa / !barraqueira / !lurk</strong> — Reações para seus mood.</li>
               <li><strong>!kitkiller / !main / !setup / !meta / !subathon / !alerta / !drop / !globo / !furacão / !selo</strong> — Info gamer e caos da gameplay.</li>
               <li><strong>!minecraft</strong> — Entre no mundo místico do servidor Grimward!</li>
               <li><strong>!backseat</strong> — Avisa que o coach não foi chamado, mona!</li>
