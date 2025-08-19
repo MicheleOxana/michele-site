@@ -67,6 +67,7 @@ export default function Loja() {
           <Link href="/xaninhas-coins">Xaninhas Coins</Link>
           <Link href="/comandos">Comandos</Link>
           <Link href="/loja">Loja</Link>
+            <Link href="/servicos">Serviços</Link>
           <Link href="/conteudos">Conteúdos</Link>
           <Link href="/grimward">Grimward</Link>
           <Link href="/cantinho-do-viewer">Cantinho do Viewer</Link>
