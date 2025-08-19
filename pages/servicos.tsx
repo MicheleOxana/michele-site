@@ -104,6 +104,21 @@ export default function Servicos() {
       <footer className="z-10 bg-purple-950 text-purple-400 text-xs text-center py-2 border-t border-purple-700">
         © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — Site surtado powered by <span className="italic text-pink-400">Unixana 🦄</span>
       </footer>
+    
+    <style jsx>{`
+        @keyframes glitter {
+          0% { background-position: 0 0; }
+          100% { background-position: 1000px 1000px; }
+        }
+        .animate-glitter {
+          background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+          background-size: 20px 20px;
+          animation: glitter 40s linear infinite;
+        }
+        .shadow-glow {
+          text-shadow: 0 0 6px rgba(255, 0, 255, 0.6), 0 0 10px rgba(255, 0, 255, 0.4);
+        }
+      `}</style>
     </div>
   );
 }
