@@ -32,6 +32,24 @@ export default function Comandos() {
             “Unixana ouviu o surto do chat... e respondeu com uma chuva de comandos babadeiros.”
           </p>
 
+<section className="bg-purple-950/70 border border-fuchsia-700 rounded-2xl p-6 shadow-lg shadow-fuchsia-900">
+  <h2 className="text-2xl font-bold text-fuchsia-300 mb-2">💬 Fale com a Unixana!</h2>
+  <p className="mt-2 text-purple-300">
+    A Unixana não é só uma bot, ela também adora interagir com o chat! 💅🎮
+    Você pode conversar com ela sobre vários tópicos, assuntos, curiosidades e até pedir pra ela algo que queira saber.
+    Para começar, é só digitar algo como:
+  </p>
+  <ul className="list-disc list-inside mt-4 space-y-1 text-sm">
+    <li><strong>Unixana quais são as redes sociais da Michele Oxana?</strong> — Unixana vai te passar os links!</li>
+    <li><strong>Unixana qual a previsão do tempo hoje para Rio de Janeiro?</strong> — Ela vai te dar a previsão do tempo atualizada!</li>
+    <li><strong>Unixana estou saindo com um boy e não sei o que fazer?</strong> — Faça uma pergunta e a Unixana responde com seu charme de unicórnia.</li>
+    <li><strong>Unixana quem é Michele Oxana?</strong> — Unixana vai te contar sobre a nossa diva e criadora de caos!</li>
+  </ul>
+  <p className="mt-6 text-center text-fuchsia-300 text-xl font-semibold animate-float">
+    ✨ Mande uma mensagem no chat mencionando com @ ou apenas escrevendo Unixana que ela te responde. Nossa diva do caos é mais que um bot! 💜✨
+  </p>
+</section>
+
           <section className="bg-purple-950/70 border border-fuchsia-700 rounded-2xl p-6 shadow-lg shadow-fuchsia-900">
             <h2 className="text-2xl font-bold text-fuchsia-300 mb-2">💬 Comandos Clássicos</h2>
             <p className="mt-2 text-purple-300">
@@ -41,7 +59,8 @@ export default function Comandos() {
               <li><strong>!xaninhacoins</strong> — Veja quantas moedas você tem. Rumo ao luxo digital!</li>
               <li><strong>!clip</strong> — Faz um clipe da live do ultimo minuto!</li>
               <li><strong>!lixo</strong> — Contador de quantas vezes a Michele já humilhou alguém com classe.</li>
-              <li><strong>!discord / !tiktok / !instagram / !youtube / !streamloots / !telegram</strong> — Links dos reinos do surto fora da Twitch.</li>
+              <li><strong>Fale com Unixana - Qual é o tiktok da michele oxana ou Qual a bio da Oxana</strong> — Ela vai te passar as informações</li>
+              <li><strong>!discord / !tiktok / !instagram / !youtube / !site / !twitter / !streamloots / !telegram</strong> — Links dos reinos do surto fora da Twitch.</li>
               <li><strong>!pix / !prime</strong> — Apoie a live com glamour e ganhe alertas ao vivo!</li>
               <li><strong>!beijo / !glitter / !tilt / !gritar / !susto / !parou / !respeito</strong> — Reações surtadas que fazem o chat ferver.</li>
               <li><strong>!mamacita / !mutante / !cadela / !piranha / !intensa / !barraqueira / !lurk</strong> — Reações para seus mood.</li>
