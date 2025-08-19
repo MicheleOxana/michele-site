@@ -90,7 +90,7 @@ export default function Servicos() {
                   Contatar no WhatsApp
                 </a>
                 <a
-                  href="mailto:jeffersonloyola@icloud.com?subject=Interessado no Serviço"
+                  href={`mailto:jeffersonloyola@icloud.com?subject=Interessado no Serviço: ${nome}`}
                   className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded"
                 >
                   Enviar E-mail
