@@ -11,36 +11,36 @@ interface Item {
 
 export default function Servicos() {
   const itens: Item[] = [
-  { 
-  nome: 'Bot para Discord Pessoal e de Live Stream 🎮', 
-  preco: 300, 
-  descricao: 'Seu próprio assistente virtual para o Discord, preparado para interagir e gerenciar sua comunidade.',
-  detalhes: 'Comandos personalizados para interação. Automação de mensagens e comandos de moderação. Notificações de live automáticas para seu Discord. Reações criativas para engajar. Conteúdos e jogos personalizados! Além disso, há uma mensalidade de R$ 5 para hospedagem do bot, com manutenção contínua e suporte 24h.',
-  key: 'botDiscord'
-},
     { 
-  nome: 'Bot para Servidores 🚗💥', 
-  preco: 400, 
-  descricao: 'Aumente a diversão do seu servidor com bots personalizados e com comandos exclusivos, eventos automatizados e integração com a comunidade.',
-  detalhes: 'Sistema de economia para RP. Missões e eventos automáticos para engajar os jogadores. Comandos personalizados para interações específicas do servidor. Integração com Discord para avisos e interações de chat. Tudo personalizável de acordo com a necessidade! Além disso, há uma mensalidade de R$ 15 para hospedagem do bot, com manutenção contínua e suporte 24h.',
-  key: 'botRP'
-},
+      nome: 'Bot para Discord Pessoal e de Live Stream 🎮', 
+      preco: 300, 
+      descricao: 'Seu próprio assistente virtual para o Discord, preparado para interagir e gerenciar sua comunidade.',
+      detalhes: 'Comandos personalizados para interação. Automação de mensagens e comandos de moderação. Notificações de live automáticas para seu Discord. Reações criativas para engajar. Conteúdos e jogos personalizados! Além disso, há uma mensalidade de R$ 5 para hospedagem do bot, com manutenção contínua e suporte 24h.',
+      key: 'botDiscord'
+    },
+    { 
+      nome: 'Bot para Servidores 🚗💥', 
+      preco: 400, 
+      descricao: 'Aumente a diversão do seu servidor com bots personalizados e com comandos exclusivos, eventos automatizados e integração com a comunidade.',
+      detalhes: 'Sistema de economia para RP. Missões e eventos automáticos para engajar os jogadores. Comandos personalizados para interações específicas do servidor. Integração com Discord para avisos e interações de chat. Tudo personalizável de acordo com a necessidade! Além disso, há uma mensalidade de R$ 15 para hospedagem do bot, com manutenção contínua e suporte 24h.',
+      key: 'botRP'
+    },
 
-{ 
-  nome: 'Bot com Integração Discord + Twitch 💖', 
-  preco: 700, 
-  descricao: 'Integração entre Discord e Twitch com comandos personalizados e interação automática para engajar seus seguidores nas duas plataformas.',
-  detalhes: 'Integração com Twitch para eventos de subs, bits e raides. Comandos personalizados no Discord para interação com seus seguidores. Sistema de ranking e pontos entre Discord e Twitch. Notificações automáticas de live e eventos. São dois bots (um discord + um twitch como moderador). Personalizado de acordo com seu jeito e suas necessidades. Além disso, há uma mensalidade de R$ 20 para hospedagem do bot, com manutenção contínua e suporte 24h.',
-  key: 'botDiscordTwitch'
-},
+    { 
+      nome: 'Bot com Integração Discord + Twitch 💖', 
+      preco: 700, 
+      descricao: 'Integração entre Discord e Twitch com comandos personalizados e interação automática para engajar seus seguidores nas duas plataformas.',
+      detalhes: 'Integração com Twitch para eventos de subs, bits e raides. Comandos personalizados no Discord para interação com seus seguidores. Sistema de ranking e pontos entre Discord e Twitch. Notificações automáticas de live e eventos. São dois bots (um discord + um twitch como moderador). Personalizado de acordo com seu jeito e suas necessidades. Além disso, há uma mensalidade de R$ 20 para hospedagem do bot, com manutenção contínua e suporte 24h.',
+      key: 'botDiscordTwitch'
+    },
 
-{ 
-  nome: 'Bot com Integração Discord + Twitch + Site Personalizado ✨', 
-  preco: 1700, 
-  descricao: 'O pacote definitivo e exclusivo! Inclui bot personalizado, integração Twitch + Discord e um site exclusivo para uma experiência completa de interação com seus seguidores.',
-  detalhes: 'Bot personalizado para Discord e Twitch. Integração entre plataformas para gerenciamento de seguidores, notificações e interações automáticas. Site exclusivo com design glamouroso e funcionalidades personalizadas para a sua comunidade. Sistema de pontos integrado na Twitch e ao site. Bot Twitch moderador com várias funcionalidades diferenciadas e personalizáveis de acordo com a necessidade da pessoa. Suporte completo para manutenção e melhorias após a entrega. Além disso, há uma mensalidade de R$ 40 para hospedagem, manutenção contínua e suporte 24h.',
-  key: 'botCompleto'
-},
+    { 
+      nome: 'Bot com Integração Discord + Twitch + Site Personalizado ✨', 
+      preco: 1700, 
+      descricao: 'O pacote definitivo e exclusivo! Inclui bot personalizado, integração Twitch + Discord e um site exclusivo para uma experiência completa de interação com seus seguidores.',
+      detalhes: 'Bot personalizado para Discord e Twitch. Integração entre plataformas para gerenciamento de seguidores, notificações e interações automáticas. Site exclusivo com design glamouroso e funcionalidades personalizadas para a sua comunidade. Sistema de pontos integrado na Twitch e ao site. Bot Twitch moderador com várias funcionalidades diferenciadas e personalizáveis de acordo com a necessidade da pessoa. Suporte completo para manutenção e melhorias após a entrega. Além disso, há uma mensalidade de R$ 40 para hospedagem, manutenção contínua e suporte 24h.',
+      key: 'botCompleto'
+    },
   ];
 
   return (
