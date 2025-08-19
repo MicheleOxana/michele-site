@@ -173,6 +173,7 @@ export default function Home() {
           <Link href="/primeiros-passos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Primeiros Passos</a></Link>
           <Link href="/sobre" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Sobre</a></Link>
           <Link href="/xaninhas-coins" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Xaninhas Coins</a></Link>
+          <Link href="/servicos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Serviços</a></Link>
           <Link href="/comandos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Comandos</a></Link>
           <Link href="/loja" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Loja</a></Link>
           <Link href="/conteudos" legacyBehavior><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Conteúdos</a></Link>
