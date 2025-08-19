@@ -59,6 +59,7 @@ export default function Comandos() {
               <li><strong>!xaninhacoins</strong> — Veja quantas moedas você tem. Rumo ao luxo digital!</li>
               <li><strong>!clip</strong> — Faz um clipe da live do ultimo minuto!</li>
               <li><strong>!lixo</strong> — Contador de quantas vezes a Michele já humilhou alguém com classe.</li>
+              <li><strong>!cancelada</strong> — Contador de quantas vezes a Michele já falou ou fez algo para ser cancelada nesta live.</li>
               <li><strong>Fale com Unixana - Qual é o tiktok da michele oxana ou Qual a bio da Oxana</strong> — Ela vai te passar as informações</li>
               <li><strong>!discord / !tiktok / !instagram / !youtube / !site / !twitter / !streamloots / !telegram</strong> — Links dos reinos do surto fora da Twitch.</li>
               <li><strong>!pix / !prime</strong> — Apoie a live com glamour e ganhe alertas ao vivo!</li>
@@ -72,7 +73,7 @@ export default function Comandos() {
               <li><strong>!gay / !sapatao / !poc / !fada / !maricona / !furry / !alien</strong> — Comandos LGBTQIAPN+ pra enaltecer nossas existências brilhantes!</li>
               <li><strong>!modoativo / !bugada / !quebrou / !derrota / !humilhada / !derrame / !reage</strong> — Expressões de dor, glória e caos puro.</li>
               <li><strong>!id / !steam</strong> — Pra quem quer jogar ou trolar com classe.</li>
-              <li><strong>!resumo / !revanche / !ranço / !doida / !mistica / !cancelada / !satan</strong> — A alma da live em forma de palavras.</li>
+              <li><strong>!resumo / !revanche / !ranço / !doida / !mistica / !satan</strong> — A alma da live em forma de palavras.</li>
               <li><strong>!onlyfans / !xvideos / !boquinha</strong> — Picantezinhos, mas com elegância, claro.</li>
             </ul>
           </section>
