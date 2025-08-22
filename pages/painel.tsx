@@ -1,355 +1,309 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  auth, db, storage, googleProvider
-} from "@/lib/firebaseClient";
-import {
-  signInWithPopup, onAuthStateChanged, signOut, User
-} from "firebase/auth";
-import {
-  ref, uploadBytesResumable, getDownloadURL, deleteObject
-} from "firebase/storage";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   collection, doc, onSnapshot, orderBy, query,
-  setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp
+  setDoc, updateDoc, deleteDoc, getDoc
 } from "firebase/firestore";
-
-// CONFIG
-const ALLOWED_EMAILS = ["jeffersonloyola@gmail.com"];
-const OVERLAY_DOC = { root: "overlays", id: "main" };
-const OVERLAY_URL = "https://micheleoxana.live/overlay";
+import { ref as sref, deleteObject } from "firebase/storage";
+import { auth, db, storage, googleProvider } from "@/lib/firebaseClient";
+import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 
 type Asset = {
   id: string;
-  cmd?: string;
+  cmd: string;
+  url: string;
   type: "video" | "image";
   storagePath: string;
-  url: string;
-  createdAt?: any;
+  createdAt: number;
+  enabled?: boolean;
+  by?: string;
 };
 
 export default function Painel() {
-  const [user, setUser] = useState<User | null>(null);
-  const [allowed, setAllowed] = useState<boolean>(false);
-
-  const [cmd, setCmd] = useState("viralizar");
-  const [file, setFile] = useState<File | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [msg, setMsg] = useState("");
-
-  const [current, setCurrent] = useState<Asset | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [filter, setFilter] = useState("");
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentAsset, setCurrentAsset] = useState<Asset | null>(null);
+  const [busy, setBusy] = useState<string>("");
 
-  // Preview local do arquivo
-  const filePreview = useMemo(() => {
-    if (!file) return null;
-    return URL.createObjectURL(file);
-  }, [file]);
-  useEffect(() => () => filePreview && URL.revokeObjectURL(filePreview), [filePreview]);
+  // login/logout
+  useEffect(() => onAuthStateChanged(auth, async (u) => {
+    setUser(u);
+    if (u) {
+      // garante o overlay base público para o OBS
+      await setDoc(doc(db, "overlays", "main"), { public: true }, { merge: true });
+    }
+  }), []);
+  const login = () => signInWithPopup(auth, googleProvider);
+  const logout = () => signOut(auth);
 
-  // Auth
+  // stream de assets
   useEffect(() => {
-    return onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setAllowed(!!u && ALLOWED_EMAILS.includes(u.email || ""));
-    });
-  }, []);
-
-  async function login() { await signInWithPopup(auth, googleProvider); }
-  async function logout() { await signOut(auth); }
-
-  // Ouve o "current"
-  useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
-      async (snap) => {
-        const data = snap.data() as { id?: string } | undefined;
-        if (!data?.id) { setCurrent(null); return; }
-        const a = await getDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", data.id));
-        if (a.exists()) setCurrent({ id: a.id, ...(a.data() as any) });
-        else setCurrent(null);
-      }
-    );
-    return () => unsub();
-  }, []);
-
-  // Lista de assets (últimos primeiro)
-  useEffect(() => {
+    if (!user) return;
     const q = query(
-      collection(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets"),
+      collection(db, "overlays", "main", "assets"),
       orderBy("createdAt", "desc")
     );
     const unsub = onSnapshot(q, (snap) => {
-      const arr: Asset[] = [];
-      snap.forEach((d) => arr.push({ id: d.id, ...(d.data() as any) }));
-      setAssets(arr);
+      const a: Asset[] = [];
+      snap.forEach(d => a.push({ id: d.id, ...(d.data() as any) }));
+      setAssets(a);
     });
-    return () => unsub();
-  }, []);
+    return unsub;
+  }, [user]);
 
-  // Upload
-  async function handleUpload() {
+  // stream do "atual" + resolve para Asset
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, "overlays", "main", "state", "current"), async (d) => {
+      const id = d.exists() ? (d.data() as any).id as string : null;
+      setCurrentId(id || null);
+      if (!id) { setCurrentAsset(null); return; }
+      const aDoc = await getDoc(doc(db, "overlays", "main", "assets", id));
+      setCurrentAsset(aDoc.exists() ? ({ id: aDoc.id, ...(aDoc.data() as any) } as Asset) : null);
+    });
+    return unsub;
+  }, [user]);
+
+  // filtro
+  const filtered = useMemo(() => {
+    const f = filter.trim().toLowerCase();
+    if (!f) return assets;
+    return assets.filter(a =>
+      a.cmd?.toLowerCase().includes(f) ||
+      a.storagePath?.toLowerCase().includes(f)
+    );
+  }, [assets, filter]);
+
+  // ações
+  async function toggleEnabled(a: Asset) {
+    setBusy(a.id);
     try {
-      setMsg("");
-      if (!user) { setMsg("Faça login."); return; }
-      if (!allowed) { setMsg("Sem permissão."); return; }
-      if (!file) { setMsg("Escolha um arquivo."); return; }
-
-      const id = crypto.randomUUID();
-      const storagePath = `overlayAssets/${id}-${(cmd || "asset")}-${file.name}`;
-      const sref = ref(storage, storagePath);
-      const task = uploadBytesResumable(sref, file);
-
-      await new Promise<void>((resolve, reject) => {
-        task.on("state_changed",
-          (s) => setProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)),
-          reject,
-          () => resolve()
-        );
+      await updateDoc(doc(db, "overlays", "main", "assets", a.id), {
+        enabled: !(a.enabled ?? true)
       });
-
-      const url = await getDownloadURL(sref);
-      const type = file.type.startsWith("video/") ? "video" : "image";
-
-      // Salva asset
-      const asset: Asset = { id, cmd, type, storagePath, url, createdAt: serverTimestamp() };
-      await setDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", id), asset);
-
-      // Define como atual
-      await setDoc(
-        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
-        { id, bump: Date.now() }, // bump: ajuda a re-tocar o mesmo
-        { merge: true }
-      );
-
-      setMsg("✅ Enviado e definido como atual!");
-      setProgress(0);
-      setFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (e: any) {
-      console.error(e);
-      setMsg("❌ Erro ao enviar/salvar: " + (e?.message || e));
-    }
+    } finally { setBusy(""); }
   }
 
-  async function tocarAgora() {
-    if (!current) return;
+  async function renameCmd(a: Asset) {
+    const novo = prompt("Novo nome do comando (sem !):", a.cmd || "");
+    if (!novo) return;
+    setBusy(a.id);
     try {
-      await setDoc(
-        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
-        { id: current.id, bump: Date.now() },
-        { merge: true }
-      );
-      setMsg("▶️ Tocando no overlay…");
-    } catch (e: any) {
-      setMsg("❌ Erro ao acionar: " + (e?.message || e));
-    }
+      await updateDoc(doc(db, "overlays", "main", "assets", a.id), { cmd: novo.trim() });
+    } finally { setBusy(""); }
   }
 
-  async function tornarAtual(a: Asset) {
+  async function setAsCurrent(a: Asset) {
+    setBusy(a.id);
     try {
-      await setDoc(
-        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
-        { id: a.id, bump: Date.now() },
-        { merge: true }
-      );
-      setMsg("✅ Definido como atual!");
-    } catch (e: any) {
-      setMsg("❌ Erro: " + (e?.message || e));
-    }
+      await setDoc(doc(db, "overlays", "main", "state", "current"),
+        { id: a.id, at: Date.now() }, { merge: true });
+    } finally { setBusy(""); }
   }
 
-  async function renomear(a: Asset) {
-    const novo = prompt("Novo nome do comando:", a.cmd || "");
-    if (novo === null) return;
+  async function removeAsset(a: Asset) {
+    if (!confirm(`Apagar "${a.cmd}"? Isso remove do site e do Storage.`)) return;
+    setBusy(a.id);
     try {
-      await updateDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", a.id), { cmd: novo });
-      setMsg("✏️ Comando atualizado.");
-    } catch (e: any) {
-      setMsg("❌ Erro: " + (e?.message || e));
-    }
-  }
-
-  async function excluir(a: Asset) {
-    if (!confirm("Excluir este asset?")) return;
-    try {
-      await deleteDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", a.id));
-      await deleteObject(ref(storage, a.storagePath));
-      if (current?.id === a.id) {
-        await setDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"), { id: null }, { merge: true });
+      // 1) Firestore
+      await deleteDoc(doc(db, "overlays", "main", "assets", a.id));
+      if (currentId === a.id) {
+        await setDoc(doc(db, "overlays", "main", "state", "current"), { id: null }, { merge: true });
       }
-      setMsg("🗑️ Excluído.");
-    } catch (e: any) {
-      setMsg("❌ Erro ao excluir: " + (e?.message || e));
-    }
+      // 2) Storage
+      if (a.storagePath) {
+        await deleteObject(sref(storage, a.storagePath));
+      }
+    } finally { setBusy(""); }
   }
 
-  const canUse = !!user && allowed;
+  const overlayUrl = "https://micheleoxana.live/overlay";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white font-sans">
-      {/* topo */}
-      <header className="bg-purple-950 border-b border-purple-700/60 shadow-lg shadow-purple-800/30">
-        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">💜 MicheleOxana™</span>
-            <span className="px-2 py-0.5 text-xs rounded-full bg-fuchsia-700/40 border border-fuchsia-400/40">
-              Painel Privado
-            </span>
-          </div>
-          <div className="text-sm">
-            {!user ? (
-              <button onClick={login} className="px-3 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500">
-                Entrar com Google
-              </button>
-            ) : (
-              <div className="flex items-center gap-3">
-                <span className="text-fuchsia-300">{user.email}</span>
-                <button onClick={logout} className="px-3 py-1 rounded bg-purple-700 hover:bg-purple-600">
-                  Sair
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col relative">
+      {/* Header */}
+      <header className="bg-purple-950 text-purple-200 px-5 py-3 flex items-center justify-between border-b border-purple-700">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-widest">💜 MicheleOxana™ <span className="text-sm italic">Painel Privado</span></h1>
+          <nav className="hidden md:flex gap-3 text-sm uppercase text-fuchsia-300">
+            <Link href="/" className="hover:text-white">Início</Link>
+            <Link href="/primeiros-passos" className="hover:text-white">Primeiros Passos</Link>
+            <Link href="/comandos" className="hover:text-white">Comandos</Link>
+          </nav>
+        </div>
+        <div>
+          {!user ? (
+            <button onClick={login} className="px-3 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-700 font-semibold">
+              Entrar com Google
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-purple-300">Logado: <b>{user.email}</b></span>
+              <button onClick={logout} className="px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800">Sair</button>
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 grid md:grid-cols-2 gap-6">
-        {/* Coluna Upload */}
-        <section className="bg-purple-950/50 backdrop-blur rounded-2xl border border-purple-700/50 p-5 shadow-xl shadow-purple-900/20">
-          <h2 className="text-xl font-semibold mb-4">Upload (vídeo/imagem) + comando</h2>
+      {/* Body */}
+      {!user ? (
+        <main className="flex-1 grid place-items-center p-10 text-purple-200">
+          <p>Faça login para gerenciar seus vídeos/imagens.</p>
+        </main>
+      ) : (
+        <main className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6">
 
-          {!canUse && (
-            <div className="text-sm text-yellow-300 mb-4">
-              Faça login com o e-mail autorizado para enviar.
+          {/* Coluna esquerda: busca + grid */}
+          <section className="xl:col-span-2">
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                className="w-full rounded-xl bg-purple-900/50 border border-purple-700 px-4 py-2 outline-none focus:ring-2 focus:ring-fuchsia-500"
+                placeholder="Buscar por comando ou arquivo…"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+              />
+              <span className="text-purple-300 text-sm">{filtered.length} itens</span>
             </div>
-          )}
 
-          <label className="block text-sm text-purple-200 mb-1">
-            Nome do comando (ex: <span className="font-mono">viralizar</span>)
-          </label>
-          <input
-            value={cmd} onChange={(e) => setCmd(e.target.value)}
-            className="w-full bg-purple-900/60 border border-purple-700 rounded px-3 py-2 mb-3 outline-none"
-            placeholder="viralizar"
-          />
-
-          <div className="flex items-center gap-3 mb-4">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*,image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="block"
-              disabled={!canUse}
-            />
-            {file && <span className="text-purple-300 text-sm truncate">{file.name}</span>}
-          </div>
-
-          {/* Preview do arquivo selecionado */}
-          {filePreview && (
-            <div className="mb-3">
-              {file?.type.startsWith("video/") ? (
-                <video src={filePreview} controls className="w-full rounded-lg border border-purple-700" />
-              ) : (
-                <img src={filePreview} className="w-full rounded-lg border border-purple-700" />
-              )}
-            </div>
-          )}
-
-          <button
-            onClick={handleUpload}
-            disabled={!canUse || !file}
-            className="w-full py-3 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40"
-          >
-            Enviar & definir como atual
-          </button>
-
-          <div className="mt-3 text-sm text-purple-200">
-            Progresso: {progress}%
-            <div className="h-2 bg-purple-900 rounded mt-1">
-              <div className="h-2 bg-fuchsia-500 rounded" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-
-          {msg && <div className="mt-3 text-sm">{msg}</div>}
-        </section>
-
-        {/* Coluna Overlay/Atual */}
-        <section className="bg-purple-950/50 backdrop-blur rounded-2xl border border-purple-700/50 p-5 shadow-xl shadow-purple-900/20">
-          <h2 className="text-xl font-semibold mb-4">Overlay & OBS</h2>
-          <label className="block text-sm text-purple-200 mb-1">URL do overlay (Browser Source no OBS)</label>
-          <div className="flex gap-2 mb-3">
-            <input
-              value={OVERLAY_URL}
-              readOnly
-              className="flex-1 bg-purple-900/60 border border-purple-700 rounded px-3 py-2 outline-none"
-            />
-            <button
-              onClick={() => navigator.clipboard.writeText(OVERLAY_URL)}
-              className="px-3 rounded bg-purple-700 hover:bg-purple-600"
-            >
-              Copiar
-            </button>
-          </div>
-          <p className="text-xs text-purple-300 mb-4">
-            Dica: 1920×1080 e desmarque “Shutdown source when not visible”.
-          </p>
-
-          <h3 className="font-semibold mb-2">Pronto para tocar (preview do atual):</h3>
-          <div className="rounded-xl border border-purple-700 p-3 min-h-[260px] flex items-center justify-center bg-purple-900/40">
-            {!current ? (
-              <span className="text-purple-300 text-sm">Nenhum asset definido ainda.</span>
-            ) : current.type === "video" ? (
-              <video src={current.url} controls className="w-full rounded" />
-            ) : (
-              <img src={current.url} className="max-h-[320px] object-contain rounded" />
-            )}
-          </div>
-
-          <button
-            onClick={tocarAgora}
-            disabled={!current}
-            className="mt-3 px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40"
-          >
-            Tocar agora
-          </button>
-        </section>
-
-        {/* Lista de assets */}
-        <section className="md:col-span-2 bg-purple-950/40 rounded-2xl border border-purple-700/50 p-5">
-          <h2 className="text-xl font-semibold mb-4">Seus assets</h2>
-          {!assets.length ? (
-            <div className="text-purple-300 text-sm">Nenhum asset enviado ainda.</div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {assets.map((a) => (
-                <div key={a.id} className="rounded-xl border border-purple-700 bg-purple-900/40 p-3">
-                  <div className="text-sm text-purple-300 mb-2">
-                    <b>Comando:</b> {a.cmd || <em className="text-purple-400/70">sem nome</em>}
-                  </div>
-                  <div className="aspect-video overflow-hidden rounded border border-purple-700 mb-3">
+            {/* Grid de cartões */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filtered.map((a) => (
+                <article key={a.id}
+                  className="rounded-2xl overflow-hidden bg-purple-900/40 border border-purple-700 shadow-lg">
+                  <div className="aspect-video bg-black">
                     {a.type === "video" ? (
-                      <video src={a.url} className="w-full h-full object-cover" />
+                      <video src={a.url} muted playsInline loop className="w-full h-full object-cover" />
                     ) : (
-                      <img src={a.url} className="w-full h-full object-cover" />
+                      // imagem
+                      <img src={a.url} alt={a.cmd} className="w-full h-full object-cover" />
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => tornarAtual(a)}
-                      className="flex-1 py-2 rounded bg-emerald-600 hover:bg-emerald-500">Tornar atual</button>
-                    <button onClick={() => renomear(a)}
-                      className="px-3 rounded bg-yellow-600 hover:bg-yellow-500">Renomear</button>
-                    <button onClick={() => excluir(a)}
-                      className="px-3 rounded bg-rose-600 hover:bg-rose-500">Excluir</button>
+
+                  <div className="p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-purple-300">Comando</div>
+                        <div className="text-lg font-semibold">{a.cmd || "(sem nome)"}</div>
+                      </div>
+                      {/* toggle */}
+                      <button
+                        onClick={() => toggleEnabled(a)}
+                        disabled={busy === a.id}
+                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
+                          (a.enabled ?? true) ? "bg-emerald-500/80" : "bg-purple-700"
+                        }`}
+                        title={(a.enabled ?? true) ? "Desativar" : "Ativar"}
+                      >
+                        <span
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
+                            (a.enabled ?? true) ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setAsCurrent(a)}
+                        disabled={busy === a.id}
+                        className="px-3 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-700 text-sm font-semibold"
+                      >
+                        Definir como atual
+                      </button>
+                      <button
+                        onClick={() => renameCmd(a)}
+                        disabled={busy === a.id}
+                        className="px-3 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-sm"
+                      >
+                        Renomear
+                      </button>
+                      <a
+                        href={a.url}
+                        target="_blank"
+                        className="px-3 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-sm text-center"
+                      >
+                        Abrir arquivo
+                      </a>
+                      <button
+                        onClick={() => removeAsset(a)}
+                        disabled={busy === a.id}
+                        className="px-3 py-2 rounded-lg bg-red-600/80 hover:bg-red-600 text-sm"
+                      >
+                        Deletar
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-purple-400 truncate">
+                      <span className="opacity-60">Storage:</span> {a.storagePath}
+                    </div>
                   </div>
-                </div>
+                </article>
               ))}
+
+              {filtered.length === 0 && (
+                <div className="col-span-full text-purple-300">
+                  Nenhum asset enviado ainda.
+                </div>
+              )}
             </div>
-          )}
-        </section>
-      </main>
+          </section>
+
+          {/* Coluna direita: URL do OBS + preview do atual */}
+          <aside className="xl:col-span-1 space-y-4">
+            <div className="rounded-2xl bg-purple-900/40 border border-purple-700 p-4">
+              <h3 className="text-xl font-bold mb-2">Overlay & OBS</h3>
+              <label className="text-sm text-purple-300">URL do overlay (Browser Source no OBS)</label>
+              <div className="mt-1 flex gap-2">
+                <input className="flex-1 rounded-lg bg-purple-950 border border-purple-700 px-3 py-2"
+                       value={overlayUrl} readOnly />
+                <button
+                  onClick={() => navigator.clipboard.writeText(overlayUrl)}
+                  className="px-3 py-2 rounded-lg bg-purple-700 hover:bg-purple-800">Copiar</button>
+              </div>
+              <p className="mt-2 text-xs text-purple-400">
+                Dica: 1920×1080, “Shutdown source when not visible” desmarcado.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-purple-900/40 border border-purple-700 p-4">
+              <h3 className="text-xl font-bold mb-3">Pronto para tocar (atual)</h3>
+
+              {!currentAsset ? (
+                <div className="h-48 grid place-items-center text-purple-400 text-sm">
+                  Nenhum asset definido ainda.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="aspect-video rounded-xl overflow-hidden bg-black border border-purple-700">
+                    {currentAsset.type === "video" ? (
+                      <video src={currentAsset.url} muted playsInline loop className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={currentAsset.url} alt={currentAsset.cmd} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="text-sm text-purple-300">
+                    <b>Comando:</b> {currentAsset.cmd} &nbsp;•&nbsp; <b>ID:</b> {currentAsset.id}
+                  </div>
+                  <button
+                    onClick={() => currentAsset && setAsCurrent(currentAsset)}
+                    className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 font-semibold"
+                  >
+                    Tocar agora (definir novamente)
+                  </button>
+                </div>
+              )}
+            </div>
+          </aside>
+        </main>
+      )}
+
+      <footer className="bg-purple-950 text-purple-400 text-xs text-center py-2 border-t border-purple-700">
+        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — Painel com glitter ✨
+      </footer>
     </div>
   );
 }
