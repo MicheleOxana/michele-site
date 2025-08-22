@@ -172,12 +172,22 @@ export default function Painel() {
     } finally { setBusy(""); }
   }
 
-  async function setAsCurrent(a: Asset) {
-    setBusy(a.id);
-    try {
-      await setDoc(doc(db, "overlays", "main", "state", "current"),
-        { id: a.id, at: Date.now() }, { merge: true });
-    } finally { setBusy(""); }
+ async function setAsCurrent(a: Asset) {
+  setBusy(a.id);
+  try {
+    // marca como selecionado (opcional, útil para preview no painel)
+    await setDoc(doc(db, "overlays", "main", "state", "current"), {
+      id: a.id,
+      at: Date.now(),
+    }, { merge: true });
+
+    // DISPARA O SINO (overlay só aparece quando este "at" muda)
+    await setDoc(doc(db, "overlays", "main", "commands", "play"), {
+      id: a.id,
+      at: Date.now(),
+    }, { merge: true });
+  } finally {
+    setBusy(""); }
   }
 
   async function removeAsset(a: Asset) {
