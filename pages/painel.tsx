@@ -1,378 +1,355 @@
 "use client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  auth, db, storage, googleProvider
+} from "@/lib/firebaseClient";
+import {
+  signInWithPopup, onAuthStateChanged, signOut, User
+} from "firebase/auth";
+import {
+  ref, uploadBytesResumable, getDownloadURL, deleteObject
+} from "firebase/storage";
+import {
+  collection, doc, onSnapshot, orderBy, query,
+  setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp
+} from "firebase/firestore";
 
-import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { auth, db, storage, googleProvider } from "@/lib/firebaseClient";
-import { signInWithPopup, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { doc, setDoc, onSnapshot, getDoc } from "firebase/firestore";
-
-const ALLOWED_EMAIL = "jeffersonloyola@gmail.com";
+// CONFIG
+const ALLOWED_EMAILS = ["jeffersonloyola@gmail.com"];
+const OVERLAY_DOC = { root: "overlays", id: "main" };
 const OVERLAY_URL = "https://micheleoxana.live/overlay";
 
 type Asset = {
   id: string;
-  url: string;
+  cmd?: string;
   type: "video" | "image";
   storagePath: string;
-  createdAt: number;
+  url: string;
+  createdAt?: any;
 };
 
 export default function Painel() {
   const [user, setUser] = useState<User | null>(null);
+  const [allowed, setAllowed] = useState<boolean>(false);
+
+  const [cmd, setCmd] = useState("viralizar");
+  const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [msg, setMsg] = useState("");
 
-  // estado do arquivo escolhido (preview antes do upload)
-  const [pickedFile, setPickedFile] = useState<File | null>(null);
-  const [pickedUrl, setPickedUrl] = useState<string | null>(null);
-  const [pickedType, setPickedType] = useState<"video" | "image" | null>(null);
-
-  const [command, setCommand] = useState("");
   const [current, setCurrent] = useState<Asset | null>(null);
-  const [isPlayingNow, setIsPlayingNow] = useState(false);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const allowed = useMemo(() => user?.email === ALLOWED_EMAIL, [user]);
+  // Preview local do arquivo
+  const filePreview = useMemo(() => {
+    if (!file) return null;
+    return URL.createObjectURL(file);
+  }, [file]);
+  useEffect(() => () => filePreview && URL.revokeObjectURL(filePreview), [filePreview]);
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  // Auth
+  useEffect(() => {
+    return onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAllowed(!!u && ALLOWED_EMAILS.includes(u.email || ""));
+    });
+  }, []);
 
-  async function login() {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (e: any) {
-      setMsg("Falha no login: " + (e?.message || e));
-    }
-  }
-  async function logout() {
-    await signOut(auth);
-  }
+  async function login() { await signInWithPopup(auth, googleProvider); }
+  async function logout() { await signOut(auth); }
 
-  // Assina o "atual" para preview
+  // Ouve o "current"
   useEffect(() => {
     const unsub = onSnapshot(
-      doc(db, "overlays", "main", "state", "current"),
+      doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
       async (snap) => {
-        const d = snap.data() as any;
-        if (!d?.id) return setCurrent(null);
-        const aRef = doc(db, "overlays", "main", "assets", d.id);
-        const a = await getDoc(aRef);
-        if (a.exists()) setCurrent(a.data() as Asset);
+        const data = snap.data() as { id?: string } | undefined;
+        if (!data?.id) { setCurrent(null); return; }
+        const a = await getDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", data.id));
+        if (a.exists()) setCurrent({ id: a.id, ...(a.data() as any) });
+        else setCurrent(null);
       }
     );
     return () => unsub();
   }, []);
 
-  // escolher arquivo → gera preview local
-  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] || null;
-    setPickedFile(file);
-    setProgress(0);
-    setMsg("");
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setPickedUrl(url);
-      setPickedType(file.type.startsWith("video/") ? "video" : file.type.startsWith("image/") ? "image" : null);
-    } else {
-      setPickedUrl(null);
-      setPickedType(null);
-    }
-  }
-
-  // upload do arquivo escolhido
-  async function uploadNow() {
-    const file = pickedFile;
-    if (!file) { setMsg("Escolha um arquivo primeiro."); return; }
-    if (!user || !allowed) { setMsg("Sem permissão para enviar."); return; }
-
-    const isVid = file.type.startsWith("video/");
-    const isImg = file.type.startsWith("image/");
-    if (!isVid && !isImg) { setMsg("Envie apenas vídeo ou imagem."); return; }
-
-    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const storagePath = `overlayAssets/${id}-${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const task = uploadBytesResumable(storageRef, file);
-
-    setMsg("Enviando…");
-    setProgress(0);
-
-    task.on(
-      "state_changed",
-      (s) => setProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)),
-      (err) => setMsg("Erro no upload: " + err.message),
-      async () => {
-        const url = await getDownloadURL(storageRef);
-        const asset: Asset = {
-          id,
-          type: isVid ? "video" : "image",
-          storagePath,
-          url,
-          createdAt: Date.now(),
-        };
-
-        await setDoc(doc(db, "overlays", "main", "assets", id), asset);
-        await setDoc(doc(db, "overlays", "main", "state", "current"), { id, at: Date.now() }, { merge: true });
-
-        const cmd = command.trim().toLowerCase();
-        if (cmd) {
-          await setDoc(
-            doc(db, "overlays", "main", "commands", cmd),
-            { assetId: id, name: cmd, updatedAt: Date.now() },
-            { merge: true }
-          );
-        }
-
-        setMsg("Enviado com sucesso! Já definido como atual.");
-        setProgress(0);
-        // limpa seleção
-        setPickedFile(null);
-        if (pickedUrl) URL.revokeObjectURL(pickedUrl);
-        setPickedUrl(null);
-        setPickedType(null);
-        setCommand("");
-      }
+  // Lista de assets (últimos primeiro)
+  useEffect(() => {
+    const q = query(
+      collection(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets"),
+      orderBy("createdAt", "desc")
     );
+    const unsub = onSnapshot(q, (snap) => {
+      const arr: Asset[] = [];
+      snap.forEach((d) => arr.push({ id: d.id, ...(d.data() as any) }));
+      setAssets(arr);
+    });
+    return () => unsub();
+  }, []);
+
+  // Upload
+  async function handleUpload() {
+    try {
+      setMsg("");
+      if (!user) { setMsg("Faça login."); return; }
+      if (!allowed) { setMsg("Sem permissão."); return; }
+      if (!file) { setMsg("Escolha um arquivo."); return; }
+
+      const id = crypto.randomUUID();
+      const storagePath = `overlayAssets/${id}-${(cmd || "asset")}-${file.name}`;
+      const sref = ref(storage, storagePath);
+      const task = uploadBytesResumable(sref, file);
+
+      await new Promise<void>((resolve, reject) => {
+        task.on("state_changed",
+          (s) => setProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)),
+          reject,
+          () => resolve()
+        );
+      });
+
+      const url = await getDownloadURL(sref);
+      const type = file.type.startsWith("video/") ? "video" : "image";
+
+      // Salva asset
+      const asset: Asset = { id, cmd, type, storagePath, url, createdAt: serverTimestamp() };
+      await setDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", id), asset);
+
+      // Define como atual
+      await setDoc(
+        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
+        { id, bump: Date.now() }, // bump: ajuda a re-tocar o mesmo
+        { merge: true }
+      );
+
+      setMsg("✅ Enviado e definido como atual!");
+      setProgress(0);
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (e: any) {
+      console.error(e);
+      setMsg("❌ Erro ao enviar/salvar: " + (e?.message || e));
+    }
   }
 
   async function tocarAgora() {
     if (!current) return;
-    setIsPlayingNow(true);
     try {
       await setDoc(
-        doc(db, "overlays", "main", "state", "current"),
-        { id: current.id, at: Date.now(), manual: true },
+        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
+        { id: current.id, bump: Date.now() },
         { merge: true }
       );
-      setMsg("Sinal enviado. Se o OBS está no /overlay, deve tocar.");
+      setMsg("▶️ Tocando no overlay…");
     } catch (e: any) {
-      setMsg("Erro ao acionar overlay: " + (e?.message || e));
-    } finally {
-      setIsPlayingNow(false);
+      setMsg("❌ Erro ao acionar: " + (e?.message || e));
     }
   }
 
-  function copyOverlayUrl() {
-    navigator.clipboard.writeText(OVERLAY_URL);
-    setMsg("URL do overlay copiada!");
+  async function tornarAtual(a: Asset) {
+    try {
+      await setDoc(
+        doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"),
+        { id: a.id, bump: Date.now() },
+        { merge: true }
+      );
+      setMsg("✅ Definido como atual!");
+    } catch (e: any) {
+      setMsg("❌ Erro: " + (e?.message || e));
+    }
   }
 
+  async function renomear(a: Asset) {
+    const novo = prompt("Novo nome do comando:", a.cmd || "");
+    if (novo === null) return;
+    try {
+      await updateDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", a.id), { cmd: novo });
+      setMsg("✏️ Comando atualizado.");
+    } catch (e: any) {
+      setMsg("❌ Erro: " + (e?.message || e));
+    }
+  }
+
+  async function excluir(a: Asset) {
+    if (!confirm("Excluir este asset?")) return;
+    try {
+      await deleteDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "assets", a.id));
+      await deleteObject(ref(storage, a.storagePath));
+      if (current?.id === a.id) {
+        await setDoc(doc(db, OVERLAY_DOC.root, OVERLAY_DOC.id, "state", "current"), { id: null }, { merge: true });
+      }
+      setMsg("🗑️ Excluído.");
+    } catch (e: any) {
+      setMsg("❌ Erro ao excluir: " + (e?.message || e));
+    }
+  }
+
+  const canUse = !!user && allowed;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col font-sans relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none animate-glitter z-0"></div>
-
-      {/* Header */}
-      <header className="z-10 bg-purple-950 text-purple-200 p-4 flex items-center justify-between shadow-lg shadow-purple-700/30 border-b border-purple-700">
-        <h1 className="text-2xl font-bold tracking-widest">
-          💜 MicheleOxana™ <span className="text-sm font-normal italic">Live</span>
-          <span className="ml-3 text-xs px-2 py-1 rounded bg-purple-800/60 border border-purple-700">Painel Privado</span>
-        </h1>
-        <nav className="space-x-3 text-sm font-bold tracking-wide uppercase text-fuchsia-300">
-          <Link href="/"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Início</a></Link>
-          <Link href="/primeiros-passos"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Primeiros Passos</a></Link>
-          <Link href="/sobre"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Sobre</a></Link>
-          <Link href="/xaninhas-coins"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Xaninhas Coins</a></Link>
-          <Link href="/comandos"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Comandos</a></Link>
-          <Link href="/loja"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Loja</a></Link>
-          <Link href="/servicos"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Serviços</a></Link>
-          <Link href="/conteudos"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Conteúdos</a></Link>
-          <Link href="/grimward"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Grimward</a></Link>
-          <Link href="/cantinho-do-viewer"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Cantinho do Viewer</a></Link>
-          <Link href="/agradecimento"><a className="hover:text-white transition-shadow duration-300 shadow-fuchsia-500 hover:shadow-glow">Agradecimento</a></Link>
-        </nav>
-      </header>
-
-      {/* Main */}
-      <main className="flex-1 z-10 px-4 py-8 max-w-5xl w-full mx-auto">
-        {/* Login / Status */}
-        {!user ? (
-          <div className="mt-12 grid place-items-center">
-            <div className="w-full max-w-xl rounded-2xl border border-purple-700/60 bg-purple-950/60 shadow-xl shadow-purple-900/40 p-6 text-center">
-              <h2 className="text-3xl font-extrabold text-fuchsia-400 mb-4 drop-shadow-[0_0_6px_fuchsia] uppercase">Painel (privado)</h2>
-              <p className="text-purple-200 mb-6">Faça login com sua conta autorizada para enviar mídias e acionar overlays no OBS.</p>
-              <button onClick={login} className="px-6 py-3 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 font-bold uppercase tracking-wide shadow-lg shadow-fuchsia-700/40">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white font-sans">
+      {/* topo */}
+      <header className="bg-purple-950 border-b border-purple-700/60 shadow-lg shadow-purple-800/30">
+        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold">💜 MicheleOxana™</span>
+            <span className="px-2 py-0.5 text-xs rounded-full bg-fuchsia-700/40 border border-fuchsia-400/40">
+              Painel Privado
+            </span>
+          </div>
+          <div className="text-sm">
+            {!user ? (
+              <button onClick={login} className="px-3 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500">
                 Entrar com Google
               </button>
-            </div>
-          </div>
-        ) : !allowed ? (
-          <div className="mt-12 grid place-items-center">
-            <div className="w-full max-w-xl rounded-2xl border border-red-700/60 bg-red-950/40 shadow-xl p-6 text-center">
-              <p className="mb-2">Logado como <b>{user.email}</b></p>
-              <h2 className="text-2xl font-bold text-red-300">Sem permissão para acessar o painel.</h2>
-              <p className="text-red-200 mt-2">Use a conta autorizada.</p>
-              <button onClick={logout} className="mt-6 px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 font-bold">Sair</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Top bar */}
-            <div className="flex gap-3 items-center justify-between flex-wrap">
-              <div className="text-sm text-purple-200">Logado como <b className="text-white">{user.email}</b></div>
-              <button onClick={logout} className="px-4 py-2 rounded-lg bg-purple-800 hover:bg-purple-700 border border-purple-600">Sair</button>
-            </div>
-
-            {/* Cards */}
-            <section className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Uploader + PREVIEW LOCAL */}
-              <div className="rounded-2xl border border-purple-700/60 bg-purple-950/60 shadow-xl shadow-purple-900/40 p-6">
-                <h3 className="text-xl font-bold text-fuchsia-300 mb-4">Upload (vídeo/imagem) + comando</h3>
-
-                <label className="block text-sm text-purple-300 mb-2">
-                  Nome do comando (ex.: <code className="text-pink-300 font-mono">viralizar</code>):
-                </label>
-                <input
-                  value={command}
-                  onChange={(e) => setCommand(e.target.value.toLowerCase())}
-                  placeholder="viralizar"
-                  className="w-full mb-4 px-3 py-2 rounded-lg bg-purple-900/60 border border-purple-700 outline-none focus:ring-2 focus:ring-fuchsia-500"
-                />
-
-                <label className="block text-sm text-purple-300 mb-2">Arquivo:</label>
-                <input
-                  type="file"
-                  accept="video/*,image/*"
-                  onChange={onPick}
-                  className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-fuchsia-600 file:px-4 file:py-2 file:text-white file:font-bold hover:file:bg-fuchsia-500 cursor-pointer"
-                />
-
-                {/* PREVIEW DO ARQUIVO ESCOLHIDO */}
-                {pickedUrl && pickedType && (
-                  <div className="mt-4">
-                    <div className="text-xs text-purple-300 mb-1">Preview do arquivo selecionado:</div>
-                    <div className="rounded-xl overflow-hidden border border-purple-700 bg-black/40" style={{ height: 220 }}>
-                      {pickedType === "video" ? (
-                        <video
-                          src={pickedUrl}
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                          controls
-                          className="w-full h-full object-contain bg-black"
-                        />
-                      ) : (
-                        <img
-                          src={pickedUrl}
-                          alt="preview"
-                          className="w-full h-full object-contain bg-black"
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-4 flex items-center gap-3">
-                  <button
-                    onClick={uploadNow}
-                    className="px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 font-bold disabled:opacity-60"
-                    disabled={!pickedFile}
-                  >
-                    Enviar & definir como atual
-                  </button>
-                </div>
-
-                <div className="mt-4">
-                  <div className="h-3 w-full bg-purple-900/60 rounded-lg overflow-hidden border border-purple-700">
-                    <div className="h-full bg-fuchsia-500 transition-all" style={{ width: `${progress}%` }} />
-                  </div>
-                  <div className="text-xs mt-1 text-purple-300">Progresso: {progress}%</div>
-                </div>
-
-                {msg && <div className="mt-4 text-sm text-fuchsia-300">{msg}</div>}
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-fuchsia-300">{user.email}</span>
+                <button onClick={logout} className="px-3 py-1 rounded bg-purple-700 hover:bg-purple-600">
+                  Sair
+                </button>
               </div>
+            )}
+          </div>
+        </div>
+      </header>
 
-              {/* Overlay / Preview do ATUAL / Acionar */}
-              <div className="rounded-2xl border border-purple-700/60 bg-purple-950/60 shadow-xl shadow-purple-900/40 p-6">
-                <h3 className="text-xl font-bold text-fuchsia-300 mb-4">Overlay & OBS</h3>
+      <main className="max-w-6xl mx-auto p-4 grid md:grid-cols-2 gap-6">
+        {/* Coluna Upload */}
+        <section className="bg-purple-950/50 backdrop-blur rounded-2xl border border-purple-700/50 p-5 shadow-xl shadow-purple-900/20">
+          <h2 className="text-xl font-semibold mb-4">Upload (vídeo/imagem) + comando</h2>
 
-                <div className="mb-4">
-                  <label className="block text-sm text-purple-300 mb-2">URL do overlay (para Browser Source no OBS):</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={OVERLAY_URL}
-                      readOnly
-                      className="flex-1 px-3 py-2 rounded-lg bg-purple-900/60 border border-purple-700 text-purple-200"
-                    />
-                    <button onClick={copyOverlayUrl} className="px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 font-bold">
-                      Copiar
-                    </button>
+          {!canUse && (
+            <div className="text-sm text-yellow-300 mb-4">
+              Faça login com o e-mail autorizado para enviar.
+            </div>
+          )}
+
+          <label className="block text-sm text-purple-200 mb-1">
+            Nome do comando (ex: <span className="font-mono">viralizar</span>)
+          </label>
+          <input
+            value={cmd} onChange={(e) => setCmd(e.target.value)}
+            className="w-full bg-purple-900/60 border border-purple-700 rounded px-3 py-2 mb-3 outline-none"
+            placeholder="viralizar"
+          />
+
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*,image/*"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="block"
+              disabled={!canUse}
+            />
+            {file && <span className="text-purple-300 text-sm truncate">{file.name}</span>}
+          </div>
+
+          {/* Preview do arquivo selecionado */}
+          {filePreview && (
+            <div className="mb-3">
+              {file?.type.startsWith("video/") ? (
+                <video src={filePreview} controls className="w-full rounded-lg border border-purple-700" />
+              ) : (
+                <img src={filePreview} className="w-full rounded-lg border border-purple-700" />
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpload}
+            disabled={!canUse || !file}
+            className="w-full py-3 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40"
+          >
+            Enviar & definir como atual
+          </button>
+
+          <div className="mt-3 text-sm text-purple-200">
+            Progresso: {progress}%
+            <div className="h-2 bg-purple-900 rounded mt-1">
+              <div className="h-2 bg-fuchsia-500 rounded" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+
+          {msg && <div className="mt-3 text-sm">{msg}</div>}
+        </section>
+
+        {/* Coluna Overlay/Atual */}
+        <section className="bg-purple-950/50 backdrop-blur rounded-2xl border border-purple-700/50 p-5 shadow-xl shadow-purple-900/20">
+          <h2 className="text-xl font-semibold mb-4">Overlay & OBS</h2>
+          <label className="block text-sm text-purple-200 mb-1">URL do overlay (Browser Source no OBS)</label>
+          <div className="flex gap-2 mb-3">
+            <input
+              value={OVERLAY_URL}
+              readOnly
+              className="flex-1 bg-purple-900/60 border border-purple-700 rounded px-3 py-2 outline-none"
+            />
+            <button
+              onClick={() => navigator.clipboard.writeText(OVERLAY_URL)}
+              className="px-3 rounded bg-purple-700 hover:bg-purple-600"
+            >
+              Copiar
+            </button>
+          </div>
+          <p className="text-xs text-purple-300 mb-4">
+            Dica: 1920×1080 e desmarque “Shutdown source when not visible”.
+          </p>
+
+          <h3 className="font-semibold mb-2">Pronto para tocar (preview do atual):</h3>
+          <div className="rounded-xl border border-purple-700 p-3 min-h-[260px] flex items-center justify-center bg-purple-900/40">
+            {!current ? (
+              <span className="text-purple-300 text-sm">Nenhum asset definido ainda.</span>
+            ) : current.type === "video" ? (
+              <video src={current.url} controls className="w-full rounded" />
+            ) : (
+              <img src={current.url} className="max-h-[320px] object-contain rounded" />
+            )}
+          </div>
+
+          <button
+            onClick={tocarAgora}
+            disabled={!current}
+            className="mt-3 px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40"
+          >
+            Tocar agora
+          </button>
+        </section>
+
+        {/* Lista de assets */}
+        <section className="md:col-span-2 bg-purple-950/40 rounded-2xl border border-purple-700/50 p-5">
+          <h2 className="text-xl font-semibold mb-4">Seus assets</h2>
+          {!assets.length ? (
+            <div className="text-purple-300 text-sm">Nenhum asset enviado ainda.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assets.map((a) => (
+                <div key={a.id} className="rounded-xl border border-purple-700 bg-purple-900/40 p-3">
+                  <div className="text-sm text-purple-300 mb-2">
+                    <b>Comando:</b> {a.cmd || <em className="text-purple-400/70">sem nome</em>}
                   </div>
-                  <p className="text-xs text-purple-300 mt-2">
-                    Dica: tamanho 1920×1080 (ou o da sua cena), “Shutdown source when not visible” desmarcado.
-                  </p>
-                </div>
-
-                <div className="mt-6">
-                  <h4 className="font-bold text-purple-200 mb-2">Pronto para tocar (preview do atual):</h4>
-
-                  {/* PREVIEW DO ASSET ATUAL */}
-                  <div className="rounded-xl overflow-hidden border border-purple-700 bg-black/40" style={{ height: 220 }}>
-                    {current ? (
-                      current.type === "video" ? (
-                        <video
-                          key={current.id}
-                          src={current.url}
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                          controls
-                          className="w-full h-full object-contain bg-black"
-                        />
-                      ) : (
-                        <img
-                          key={current.id}
-                          src={current.url}
-                          alt="atual"
-                          className="w-full h-full object-contain bg-black"
-                        />
-                      )
+                  <div className="aspect-video overflow-hidden rounded border border-purple-700 mb-3">
+                    {a.type === "video" ? (
+                      <video src={a.url} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full grid place-items-center text-purple-300 text-sm">
-                        Nenhum asset definido ainda.
-                      </div>
+                      <img src={a.url} className="w-full h-full object-cover" />
                     )}
                   </div>
-
-                  <div className="mt-3 flex items-center gap-3">
-                    <button
-                      onClick={tocarAgora}
-                      disabled={!current || isPlayingNow}
-                      className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-bold disabled:opacity-60"
-                    >
-                      {isPlayingNow ? "Enviando..." : "Tocar agora"}
-                    </button>
-                    {current && (
-                      <span className="text-xs text-purple-300 truncate">
-                        <b className="text-white">{current.type.toUpperCase()}</b> • {current.url}
-                      </span>
-                    )}
+                  <div className="flex gap-2">
+                    <button onClick={() => tornarAtual(a)}
+                      className="flex-1 py-2 rounded bg-emerald-600 hover:bg-emerald-500">Tornar atual</button>
+                    <button onClick={() => renomear(a)}
+                      className="px-3 rounded bg-yellow-600 hover:bg-yellow-500">Renomear</button>
+                    <button onClick={() => excluir(a)}
+                      className="px-3 rounded bg-rose-600 hover:bg-rose-500">Excluir</button>
                   </div>
                 </div>
-              </div>
-            </section>
-          </>
-        )}
+              ))}
+            </div>
+          )}
+        </section>
       </main>
-
-      {/* Footer */}
-      <footer className="z-10 bg-purple-950 text-purple-400 text-xs text-center py-2 border-t border-purple-700">
-        © 2025 <span className="font-semibold text-white">MicheleOxana™</span> — Painel privado powered by <span className="italic text-pink-400">Unixana 🦄</span>
-      </footer>
-
-      <style jsx>{`
-        @keyframes glitter {
-          0% { background-position: 0 0; }
-          100% { background-position: 1000px 1000px; }
-        }
-        .animate-glitter {
-          background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-          background-size: 20px 20px;
-          animation: glitter 40s linear infinite;
-        }
-        .shadow-glow { text-shadow: 0 0 6px rgba(255,0,255,0.6), 0 0 10px rgba(255,0,255,0.4); }
-      `}</style>
     </div>
   );
 }
-
