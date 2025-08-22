@@ -192,6 +192,15 @@ export default function Painel() {
     } finally { setBusy(""); }
   }
 
+    async function triggerPlayById(id: string) {
+  // “bipe” que o overlay escuta
+  await setDoc(
+    doc(db, "overlays", "main", "commands", "now"),
+    { id, at: Date.now() },   // 'at' força mudança pra onSnapshot disparar
+    { merge: true }
+  );
+}
+
   const overlayUrl = "https://micheleoxana.live/overlay";
 
   return (
@@ -410,12 +419,16 @@ export default function Painel() {
                   <div className="text-sm text-purple-300">
                     <b>Comando:</b> {currentAsset.cmd} &nbsp;•&nbsp; <b>ID:</b> {currentAsset.id}
                   </div>
-                  <button
-                    onClick={() => setAsCurrent(currentAsset)}
-                    className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 font-semibold"
-                  >
-                    Tocar agora (definir novamente)
-                  </button>
+                 <button
+  onClick={async () => {
+    if (!currentAsset) return;
+    await setAsCurrent(currentAsset);       // continua definindo como "atual"
+    await triggerPlayById(currentAsset.id); // e manda tocar agora
+  }}
+  className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 font-semibold"
+>
+  Tocar agora (definir novamente)
+</button>
                 </div>
               )}
             </div>
