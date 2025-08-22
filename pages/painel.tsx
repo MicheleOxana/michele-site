@@ -6,7 +6,7 @@ import {
   collection, doc, onSnapshot, orderBy, query,
   setDoc, updateDoc, deleteDoc, getDoc
 } from "firebase/firestore";
-import { ref as sref, deleteObject } from "firebase/storage";
+import { ref as sref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 import { auth, db, storage, googleProvider } from "@/lib/firebaseClient";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 
@@ -21,8 +21,20 @@ type Asset = {
   by?: string;
 };
 
+// util simples
+const sanitizeCmd = (s: string) => s.trim().replace(/^!+/, "").toLowerCase();
+
 export default function Painel() {
   const [user, setUser] = useState<any>(null);
+
+  // ===== Upload state =====
+  const [cmd, setCmd] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [upPct, setUpPct] = useState(0);
+  const [upMsg, setUpMsg] = useState("");
+
+  // ===== Lista / atual =====
   const [assets, setAssets] = useState<Asset[]>([]);
   const [filter, setFilter] = useState("");
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -33,7 +45,7 @@ export default function Painel() {
   useEffect(() => onAuthStateChanged(auth, async (u) => {
     setUser(u);
     if (u) {
-      // garante o overlay base público para o OBS
+      // garante doc público para o OBS
       await setDoc(doc(db, "overlays", "main"), { public: true }, { merge: true });
     }
   }), []);
@@ -55,7 +67,7 @@ export default function Painel() {
     return unsub;
   }, [user]);
 
-  // stream do "atual" + resolve para Asset
+  // stream do "atual"
   useEffect(() => {
     if (!user) return;
     const unsub = onSnapshot(doc(db, "overlays", "main", "state", "current"), async (d) => {
@@ -68,7 +80,6 @@ export default function Painel() {
     return unsub;
   }, [user]);
 
-  // filtro
   const filtered = useMemo(() => {
     const f = filter.trim().toLowerCase();
     if (!f) return assets;
@@ -78,7 +89,71 @@ export default function Painel() {
     );
   }, [assets, filter]);
 
-  // ações
+  // ===== Upload handlers =====
+  function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] || null;
+    setFile(f);
+    setUpMsg("");
+    setUpPct(0);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(f ? URL.createObjectURL(f) : null);
+  }
+
+  async function doUpload() {
+    try {
+      if (!user) { setUpMsg("Faça login."); return; }
+      if (!file) { setUpMsg("Escolha um arquivo."); return; }
+      const _cmd = sanitizeCmd(cmd);
+      if (!_cmd) { setUpMsg("Digite o nome do comando."); return; }
+
+      const id = crypto.randomUUID();
+      const storagePath = `overlayAssets/${id}-${file.name}`;
+      const r = sref(storage, storagePath);
+      const task = uploadBytesResumable(r, file);
+
+      setUpMsg("Enviando…");
+      task.on("state_changed", s => {
+        setUpPct(Math.round((s.bytesTransferred / s.totalBytes) * 100));
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        task.on("state_changed",
+          () => {},
+          (err) => reject(err),
+          () => resolve()
+        );
+      });
+
+      const url = await getDownloadURL(r);
+      const asset: Asset = {
+        id,
+        cmd: _cmd,
+        type: file.type.startsWith("video/") ? "video" : "image",
+        storagePath,
+        url,
+        createdAt: Date.now(),
+        enabled: true,
+        by: user.email,
+      };
+
+      // salva na coleção e define como atual
+      await setDoc(doc(db, "overlays", "main", "assets", id), asset);
+      await setDoc(doc(db, "overlays", "main", "state", "current"),
+        { id, at: Date.now() }, { merge: true });
+
+      setUpMsg("✅ Enviado e definido como atual!");
+      setCmd("");
+      setFile(null);
+      if (preview) URL.revokeObjectURL(preview);
+      setPreview(null);
+      setUpPct(0);
+    } catch (err: any) {
+      console.error(err);
+      setUpMsg("❌ Erro: " + (err?.message || err));
+    }
+  }
+
+  // ===== Ações nos cards =====
   async function toggleEnabled(a: Asset) {
     setBusy(a.id);
     try {
@@ -93,7 +168,7 @@ export default function Painel() {
     if (!novo) return;
     setBusy(a.id);
     try {
-      await updateDoc(doc(db, "overlays", "main", "assets", a.id), { cmd: novo.trim() });
+      await updateDoc(doc(db, "overlays", "main", "assets", a.id), { cmd: sanitizeCmd(novo) });
     } finally { setBusy(""); }
   }
 
@@ -106,25 +181,21 @@ export default function Painel() {
   }
 
   async function removeAsset(a: Asset) {
-    if (!confirm(`Apagar "${a.cmd}"? Isso remove do site e do Storage.`)) return;
+    if (!confirm(`Apagar "${a.cmd}"?`)) return;
     setBusy(a.id);
     try {
-      // 1) Firestore
       await deleteDoc(doc(db, "overlays", "main", "assets", a.id));
       if (currentId === a.id) {
         await setDoc(doc(db, "overlays", "main", "state", "current"), { id: null }, { merge: true });
       }
-      // 2) Storage
-      if (a.storagePath) {
-        await deleteObject(sref(storage, a.storagePath));
-      }
+      if (a.storagePath) await deleteObject(sref(storage, a.storagePath));
     } finally { setBusy(""); }
   }
 
   const overlayUrl = "https://micheleoxana.live/overlay";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col relative">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black text-white flex flex-col">
       {/* Header */}
       <header className="bg-purple-950 text-purple-200 px-5 py-3 flex items-center justify-between border-b border-purple-700">
         <div className="flex items-center gap-2">
@@ -149,17 +220,73 @@ export default function Painel() {
         </div>
       </header>
 
-      {/* Body */}
       {!user ? (
         <main className="flex-1 grid place-items-center p-10 text-purple-200">
-          <p>Faça login para gerenciar seus vídeos/imagens.</p>
+          <p>Faça login para gerenciar e enviar seus vídeos/imagens.</p>
         </main>
       ) : (
         <main className="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6">
 
-          {/* Coluna esquerda: busca + grid */}
-          <section className="xl:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
+          {/* Coluna esquerda (upload + lista) */}
+          <section className="xl:col-span-2 space-y-6">
+
+            {/* === Upload card === */}
+            <div className="rounded-2xl bg-purple-900/40 border border-purple-700 p-4">
+              <h3 className="text-xl font-bold mb-3">Upload (vídeo/imagem) + comando</h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <label className="text-sm text-purple-300">Nome do comando (ex: <b>viralizar</b>)</label>
+                  <input
+                    value={cmd}
+                    onChange={e => setCmd(e.target.value)}
+                    placeholder="viralizar"
+                    className="w-full rounded-lg bg-purple-950 border border-purple-700 px-3 py-2 outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  />
+
+                  <label className="text-sm text-purple-300">Arquivo</label>
+                  <input
+                    type="file"
+                    accept="video/*,image/*"
+                    onChange={onSelectFile}
+                    className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-fuchsia-600 file:px-3 file:py-2 file:text-white hover:file:bg-fuchsia-700"
+                  />
+
+                  <button
+                    onClick={doUpload}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-700 font-semibold"
+                  >
+                    Enviar & definir como atual
+                  </button>
+
+                  <div className="text-sm text-purple-300">
+                    Progresso: {upPct}%
+                    <div className="h-2 mt-1 rounded bg-purple-800 overflow-hidden">
+                      <div className="h-2 bg-fuchsia-500" style={{ width: `${upPct}%` }} />
+                    </div>
+                    {upMsg && <div className="mt-2 text-purple-200">{upMsg}</div>}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-purple-300 mb-2">Preview do arquivo selecionado:</div>
+                  <div className="aspect-video rounded-xl overflow-hidden bg-black border border-purple-700">
+                    {!preview ? (
+                      <div className="w-full h-full grid place-items-center text-purple-500 text-sm">
+                        Nenhum arquivo selecionado.
+                      </div>
+                    ) : file?.type.startsWith("video/") ? (
+                      <video src={preview} muted playsInline loop className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* === Busca + grid de cards === */}
+            <div className="flex items-center gap-3">
               <input
                 className="w-full rounded-xl bg-purple-900/50 border border-purple-700 px-4 py-2 outline-none focus:ring-2 focus:ring-fuchsia-500"
                 placeholder="Buscar por comando ou arquivo…"
@@ -169,7 +296,6 @@ export default function Painel() {
               <span className="text-purple-300 text-sm">{filtered.length} itens</span>
             </div>
 
-            {/* Grid de cartões */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filtered.map((a) => (
                 <article key={a.id}
@@ -178,7 +304,6 @@ export default function Painel() {
                     {a.type === "video" ? (
                       <video src={a.url} muted playsInline loop className="w-full h-full object-cover" />
                     ) : (
-                      // imagem
                       <img src={a.url} alt={a.cmd} className="w-full h-full object-cover" />
                     )}
                   </div>
@@ -189,7 +314,6 @@ export default function Painel() {
                         <div className="text-sm text-purple-300">Comando</div>
                         <div className="text-lg font-semibold">{a.cmd || "(sem nome)"}</div>
                       </div>
-                      {/* toggle */}
                       <button
                         onClick={() => toggleEnabled(a)}
                         disabled={busy === a.id}
@@ -243,7 +367,6 @@ export default function Painel() {
                   </div>
                 </article>
               ))}
-
               {filtered.length === 0 && (
                 <div className="col-span-full text-purple-300">
                   Nenhum asset enviado ainda.
@@ -252,7 +375,7 @@ export default function Painel() {
             </div>
           </section>
 
-          {/* Coluna direita: URL do OBS + preview do atual */}
+          {/* Coluna direita: overlay + atual */}
           <aside className="xl:col-span-1 space-y-4">
             <div className="rounded-2xl bg-purple-900/40 border border-purple-700 p-4">
               <h3 className="text-xl font-bold mb-2">Overlay & OBS</h3>
@@ -271,7 +394,6 @@ export default function Painel() {
 
             <div className="rounded-2xl bg-purple-900/40 border border-purple-700 p-4">
               <h3 className="text-xl font-bold mb-3">Pronto para tocar (atual)</h3>
-
               {!currentAsset ? (
                 <div className="h-48 grid place-items-center text-purple-400 text-sm">
                   Nenhum asset definido ainda.
@@ -289,7 +411,7 @@ export default function Painel() {
                     <b>Comando:</b> {currentAsset.cmd} &nbsp;•&nbsp; <b>ID:</b> {currentAsset.id}
                   </div>
                   <button
-                    onClick={() => currentAsset && setAsCurrent(currentAsset)}
+                    onClick={() => setAsCurrent(currentAsset)}
                     className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 font-semibold"
                   >
                     Tocar agora (definir novamente)
