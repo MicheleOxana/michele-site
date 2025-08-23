@@ -106,7 +106,7 @@ export default function Comandos() {
               <div className="bg-purple-900/50 rounded-xl p-4 border border-purple-700">
                 <p className="text-fuchsia-200 font-semibold mb-2">Digite no chat:</p>
                 <p className="font-mono leading-relaxed break-words">
-                  !beijo, !piranha, !charmoso, !desver, !saopaulo, !rata, !espanhol, !inferno, !pantera, !passada, !nervos, !antipatica, !lambada, !gay, !infartar, !gloria, !spirit, !creio, !sexy, !viralizar, !littleponey
+                  !beijo, !lola, !piranha, !charmoso, !desver, !saopaulo, !rata, !espanhol, !inferno, !pantera, !passada, !nervos, !antipatica, !lambada, !gay, !infartar, !gloria, !spirit, !creio, !sexy, !viralizar, !littleponey
                 </p>
               </div>
               <p className="mt-3 text-purple-400 text-xs">
