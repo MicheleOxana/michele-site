@@ -1,16 +1,16 @@
 // pages/api/overlay/trigger.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// ❗️USE o db do seu firebaseAdmin centralizado
+// ✅ usa o db central (teu firebaseAdmin)
 import { db } from '../../../src/services/firebaseAdmin';
-// token da CONTA PRINCIPAL
+// ✅ pega o token da CONTA PRINCIPAL (default export)
 import getUserTokenFromFirebase from '../../../src/utils/getUserTokenFromFirebase';
 
 const CLIENT_ID = process.env.TWITCH_CLIENT_ID!;
 const BROADCASTER_ID = process.env.TWITCH_BOT_BROADCASTER_ID!; // ex.: 517861418
 const OVERLAY_ID = process.env.OVERLAY_ID || 'main';
 
-// ---- Helix helpers ----
+// --- Helix helpers ---
 async function helix(path: string, token: string) {
   const r = await fetch(`https://api.twitch.tv/helix${path}`, {
     headers: { 'Client-ID': CLIENT_ID, Authorization: `Bearer ${token}` },
@@ -21,7 +21,10 @@ async function helix(path: string, token: string) {
   try { return JSON.parse(text); } catch { return text as any; }
 }
 
-async function resolveUserId({ user_id, user_login, token }: { user_id?: string; user_login?: string; token: string }): Promise<string> {
+async function resolveUserId(
+  { user_id, user_login, token }:
+  { user_id?: string; user_login?: string; token: string }
+): Promise<string> {
   if (user_id) return user_id;
   if (!user_login) throw new Error('Informe user_id ou user_login');
   const data = await helix(`/users?login=${encodeURIComponent(user_login)}`, token);
@@ -30,25 +33,20 @@ async function resolveUserId({ user_id, user_login, token }: { user_id?: string;
   return id;
 }
 
-async function isSubscriber(broadcasterToken: string, userId: string): Promise<boolean> {
-  // Founder já aparece aqui como sub
+async function isSubscriber(broadcasterToken: string, userId: string) {
   const data = await helix(`/subscriptions?broadcaster_id=${BROADCASTER_ID}&user_id=${userId}`, broadcasterToken);
-  return (data?.data?.length || 0) > 0;
+  return (data?.data?.length || 0) > 0; // founders contam aqui
 }
 
-// ---- API ----
+// --- API ---
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const debug = req.query.debug === '1';
   try {
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
 
     const { cmd, user_id, user_login, forceId } = (req.body || {}) as {
-      cmd?: string;
-      user_id?: string;
-      user_login?: string;
-      forceId?: string;
+      cmd?: string; user_id?: string; user_login?: string; forceId?: string;
     };
-
     if (!cmd || !cmd.startsWith('!')) {
       return res.status(400).json({ ok: false, error: 'cmd obrigatório e deve começar com !' });
     }
@@ -71,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 2) checar permissão (sub ou broadcaster)
-    const broadcasterToken = await getUserTokenFromFirebase(); // precisa escopo channel:read:subscriptions
+    const broadcasterToken = await getUserTokenFromFirebase(); // precisa scope channel:read:subscriptions
     const uid = await resolveUserId({ user_id, user_login, token: broadcasterToken });
     const isOwner = uid === BROADCASTER_ID;
     const isSub = isOwner ? true : await isSubscriber(broadcasterToken, uid);
@@ -81,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ ok: false, error: 'sem permissão (precisa ser sub ou broadcaster)' });
     }
 
-    // 3) tocar: escreve o “sino” que seu Overlay.tsx já assina
+    // 3) tocar: escreve o “sino” que o Overlay.tsx assina
     const at = Date.now();
     await db.collection('overlays').doc(OVERLAY_ID)
       .collection('commands').doc('play')
