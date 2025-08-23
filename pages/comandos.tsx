@@ -97,6 +97,24 @@ export default function Comandos() {
             </ul>
           </section>
 
+          <section className="bg-gradient-to-br from-fuchsia-900/70 to-purple-950/70 border border-fuchsia-700 rounded-2xl p-6 shadow-lg shadow-fuchsia-900">
+            <h2 className="text-2xl font-bold text-fuchsia-300 mb-2">💎 Comandos Exclusivos pra Sub</h2>
+            <p className="mt-2 text-purple-300 text-sm">
+              Mimos da realeza do chat! Esses comandos funcionam apenas para quem é <span className="text-pink-300 font-semibold">sub</span>, mod ou broadcaster.
+            </p>
+            <div className="mt-4 text-sm">
+              <div className="bg-purple-900/50 rounded-xl p-4 border border-purple-700">
+                <p className="text-fuchsia-200 font-semibold mb-2">Digite no chat:</p>
+                <p className="font-mono leading-relaxed break-words">
+                  !beijo, !piranha, !charmoso, !desver, !saopaulo, !rata, !espanhol, !inferno, !pantera, !passada, !nervos, !antipatica, !lambada, !gay, !infartar, !gloria, !spirit, !creio, !sexy, !viralizar, !littleponey
+                </p>
+              </div>
+              <p className="mt-3 text-purple-400 text-xs">
+                *Alguns desses também aparecem em outras listas, porém aqui são comandos especiais que resgatam interação direto na live.
+              </p>
+            </div>
+          </section>
+
           <p className="mt-12 text-center text-fuchsia-300 text-xl font-semibold animate-float">
             Todos esses comandos funcionam ao vivo na live da <span className="italic text-pink-400">MicheleOxana™</span>. Quer ver o caos em ação?
             <br/>
